@@ -1,549 +1,377 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Hidden Gems — Live Weather & Currency</title>
-<meta name="description" content="Plan trips, view live weather, and convert currency — all in a fast single-page travel planner."/>
-<meta name="robots" content="index,follow" />
-<link rel="preconnect" href="https://images.unsplash.com" crossorigin>
-<style>
-  :root{--accent:#2a9d8f;--muted:#6b7280;--card:#fff}
-  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:16px;background:#f6f7fb;color:#0b1220}
-  .container{max-width:980px;margin:0 auto}
-  .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 30px rgba(2,6,23,.06);display:flex;gap:14px;align-items:center}
-  .card-media{width:140px;height:90px;overflow:hidden;border-radius:10px;flex:0 0 140px}
-  .card-media img{width:100%;height:100%;object-fit:cover;display:block}
-  .card-body h3{margin:0;font-size:1.05rem}
-  .muted{color:var(--muted)}
-  .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
-  .btn.secondary{background:#2b6cb0}
-  .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Underrated Travel — Hidden Gems & Smart Travel Tools</title>
+  <meta name="description" content="Discover underrated travel destinations with AI itineraries, live weather, interactive maps, trip planner, bucket list and gamified rewards." />
+  <meta name="keywords" content="underrated travel, hidden gems, trip planner, itinerary generator, bucket list, live weather, travel calculator" />
 
-  /* modal */
-  .modal{position:fixed;inset:0;background:rgba(2,6,23,0.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
-  .modal.open{display:flex}
-  .panel{width:100%;max-width:900px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 20px 50px rgba(2,6,23,.2);max-height:90vh;overflow:auto}
-  .row{display:flex;gap:10px}
-  .row>div{flex:1}
-  label{display:block;font-size:.9rem;color:var(--muted);margin-bottom:6px}
-  input[type=date],select,input[type=number],textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e6e6e6}
-  #miniMap{height:220px;border-radius:8px;margin-top:8px}
-  .it-day{background:#f8fafb;padding:10px;border-radius:8px;margin-bottom:8px}
-  #weatherBox{margin-top:10px;padding:10px;border-radius:8px;background:#f3f8f7;border:1px solid #e6f1ee}
-  .forecast{display:flex;gap:8px;margin-top:8px}
-  .forecast .day{background:#fff;padding:8px;border-radius:8px;box-shadow:0 6px 18px rgba(2,6,23,0.03);flex:1;text-align:center}
-  .small{font-size:.9rem;color:var(--muted)}
-  footer{margin-top:16px;font-size:.85rem;color:var(--muted)}
-</style>
+  <!-- Styles (concise, performance-minded) -->
+  <style>
+    :root{--p:#2a9d8f;--a:#e76f51;--dark:#264653;--muted:#6c757d;--card:#fff}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.45;margin:0;background:#f5f7fb;color:#222}
+    .container{max-width:1200px;margin:0 auto;padding:20px}
+    header{background:linear-gradient(90deg,var(--p),#21867a);color:white;padding:18px 0;position:sticky;top:0;z-index:999}
+    header .brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:1.25rem}
+    header .brand i{font-size:1.6rem}
+    nav{margin-left:auto}
+    .topbar{display:flex;align-items:center;gap:20px}
+    .search{display:flex;gap:8px;max-width:760px;width:100%;margin:14px 0}
+    input[type=text],input[type=email],select{padding:12px;border-radius:12px;border:1px solid #e6eef2;background:white;flex:1}
+    button{background:var(--a);color:white;border:none;padding:10px 16px;border-radius:10px;cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 8px 20px rgba(16,24,40,0.06);overflow:hidden;display:flex;flex-direction:column}
+    .card img{width:100%;height:220px;object-fit:cover}
+    .card .body{padding:16px;flex:1;display:flex;flex-direction:column}
+    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:auto}
+    .btn-ghost{background:transparent;border:1px solid #eee;padding:8px 12px;border-radius:8px}
+    .map{height:420px;border-radius:12px;overflow:hidden}
+    .panel{background:white;padding:16px;border-radius:12px;box-shadow:0 8px 20px rgba(16,24,40,0.04)}
+    .flex{display:flex;gap:12px;align-items:center}
+    footer{padding:30px;text-align:center;color:#6b7280}
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#f1f5f9;color:#0f172a;font-weight:600}
+    .floating-chat{position:fixed;right:20px;bottom:20px;background:#0f172a;color:white;border-radius:999px;padding:12px 16px;box-shadow:0 8px 30px rgba(2,6,23,0.2);cursor:pointer;z-index:10000}
+    .hidden{display:none}
+    .itinerary{white-space:pre-wrap;font-family:inherit}
+    @media (max-width:700px){.topbar{flex-direction:column;align-items:stretch}}
+  </style>
+
+  <!-- Icons & Leaflet CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" crossorigin="anonymous" />
 </head>
+
 <body>
-  <div class="container">
-    <h1 style="margin:0 0 12px 0">Hidden Gems — Demo destination</h1>
-
-    <div class="card" id="demoCard">
-      <div class="card-media">
-        <img id="demoImg"
-             src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=60"
-             srcset="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=400&q=60 400w,
-                     https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=60 800w,
-                     https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=60 1200w"
-             sizes="(max-width:480px) 120px, 160px"
-             alt="Faroe Islands" loading="lazy" width="320" height="240">
-      </div>
-      <div class="card-body">
-        <h3 id="demoTitle">Faroe Islands, Denmark</h3>
-        <p id="demoDesc" class="muted" style="margin:.25rem 0">Dramatic cliffs, seabirds and Nordic solitude.</p>
-        <div class="controls">
-          <button class="btn" id="planBtn" aria-haspopup="dialog" aria-controls="plannerModal">Plan a Trip Here</button>
-          <button class="btn secondary" id="saveDemoBtn">Save to Bucket List</button>
-          <button id="viewBucketBtn" style="margin-left:auto;background:#111827;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer">View My Bucket List</button>
-        </div>
+  <header>
+    <div class="container topbar">
+      <div class="brand"><i>🧭</i>Underrated<span style="color:#fff;opacity:0.9">Travel</span></div>
+      <div style="flex:1"></div>
+      <div class="flex" style="gap:8px">
+        <input type="text" id="globalSearch" placeholder="Search destinations, experiences, food..." aria-label="Search" style="max-width:420px" oninput="liveSuggest(this.value)">
+        <button onclick="openPlanner()">Plan Trip</button>
+        <button class="btn-ghost" onclick="openMap()">Full Map</button>
+        <div class="badge" id="pointsBadge">Points: 0</div>
       </div>
     </div>
+  </header>
 
-    <footer class="small">Tip: install as a PWA for offline usage. Weather and exchange rates are fetched live when you open the planner.</footer>
-  </div>
-
-  <!-- Planner Modal -->
-  <div class="modal" id="plannerModal" role="dialog" aria-modal="true" aria-labelledby="plannerTitle">
-    <div class="panel modal-panel" role="document" tabindex="0">
-      <h2 id="plannerTitle" style="margin-top:0">AI Trip Planner — <span id="plDest">Faroe Islands</span></h2>
-
-      <div class="row" style="margin-bottom:10px">
-        <div>
-          <label for="startDate">Start date</label>
-          <input type="date" id="startDate" />
-        </div>
-        <div>
-          <label for="duration">Duration (days)</label>
-          <select id="duration">
-            <option value="3">3</option><option value="5" selected>5</option><option value="7">7</option><option value="10">10</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row" style="margin-bottom:10px">
-        <div>
-          <label for="budgetLevel">Budget</label>
-          <select id="budgetLevel"><option value="low">Budget</option><option value="mid" selected>Mid-range</option><option value="luxury">Luxury</option></select>
-        </div>
-        <div>
-          <label for="travelerType">Traveler type</label>
-          <select id="travelerType"><option value="solo">Solo</option><option value="couple" selected>Couple</option><option value="family">Family</option></select>
-        </div>
-      </div>
-
+  <main class="container" id="app">
+    <!-- Hero + Suggested -->
+    <section style="display:grid;grid-template-columns:1fr 360px;gap:20px;margin-top:20px">
       <div>
-        <label for="notes">Notes</label>
-        <textarea id="notes" rows="2" placeholder="e.g. hiking, whales, photography"></textarea>
+        <h1 style="margin:0 0 8px">Discover Hidden Gems & Build Your Dream Trip</h1>
+        <p style="margin:0 0 12px;color:#4b5563">AI itineraries, live weather, personalized bucket list, gamified badges and practical cost estimates — all in one place.</p>
+
+        <!-- Smart Filters -->
+        <div class="flex" style="margin-bottom:12px">
+          <select id="regionF" onchange="applyFilters()">
+            <option value="">All Regions</option>
+            <option>Europe</option><option>Asia</option><option>Americas</option><option>Africa</option><option>Oceania</option>
+          </select>
+          <select id="typeF" onchange="applyFilters()">
+            <option value="">Any</option><option>Nature</option><option>Culture</option><option>Adventure</option><option>Beach</option>
+          </select>
+          <select id="budgetF" onchange="applyFilters()">
+            <option value="">Any Budget</option><option value="budget">Budget</option><option value="mid">Mid-range</option><option value="luxury">Luxury</option>
+          </select>
+          <button class="btn-ghost" onclick="resetFilters()">Reset</button>
+        </div>
+
+        <!-- Destinations Grid -->
+        <div id="destGrid" class="grid"></div>
+
       </div>
 
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-        <button id="cancelPlanner">Cancel</button>
-        <button class="btn" id="generateBtn">Generate Itinerary</button>
-      </div>
+      <!-- Right column: Planner + Live Widgets -->
+      <aside style="display:flex;flex-direction:column;gap:16px">
+        <div class="panel">
+          <h3 style="margin:0 0 8px">Trip Planner (AI-powered)</h3>
+          <p style="margin:0 0 12px;color:#475569">Tell our AI your dates, interests and budget. Get a full editable day-by-day plan.</p>
+          <div style="display:grid;gap:8px">
+            <input type="text" id="tp_dest" placeholder="Destination (city or country)">
+            <input type="date" id="tp_start">
+            <input type="date" id="tp_end">
+            <select id="tp_budget"><option value="budget">Budget</option><option value="mid">Mid-range</option><option value="luxury">Luxury</option></select>
+            <select id="tp_style"><option>Nature</option><option>Culture</option><option>Adventure</option><option>Relax</option></select>
+            <button onclick="generateItinerary()">Generate Itinerary</button>
+          </div>
+          <div id="itineraryResult" style="margin-top:12px;color:#0f172a"></div>
+        </div>
 
-      <div id="itineraryArea" class="itinerary" aria-live="polite"></div>
+        <div class="panel">
+          <h4 style="margin:0 0 8px">Live Weather & Local Info</h4>
+          <div class="flex" style="justify-content:space-between;align-items:center">
+            <input type="text" id="weatherLookup" placeholder="Enter city (e.g., Reykjavik)" style="flex:1;margin-right:8px">
+            <button onclick="fetchWeather()">Check</button>
+          </div>
+          <div id="weatherCard" style="margin-top:10px;color:#0f172a"></div>
+        </div>
 
-      <!-- live weather -->
-      <div id="weatherBox" aria-hidden="true"></div>
+        <div class="panel">
+          <h4 style="margin:0 0 8px">My Bucket List</h4>
+          <div id="bucketList" style="min-height:70px"></div>
+          <div style="margin-top:8px;display:flex;gap:8px"><input id="addBucket" placeholder="Add a place"><button onclick="addToBucket()">Save</button></div>
+        </div>
 
-      <!-- map -->
-      <div id="miniMap" aria-hidden="true"></div>
+      </aside>
+    </section>
 
-      <!-- Estimated cost & currency -->
-      <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;">
-        <div id="costEstimate" class="small">Estimated cost: <strong>USD 0</strong></div>
-        <div id="currencyConverter" style="display:flex;gap:8px;align-items:center">
-          <label class="small" for="currencySelect">Convert to</label>
-          <select id="currencySelect" aria-label="Target currency"></select>
-          <div id="convertedCost" class="small"></div>
+    <!-- Map + Heatmap -->
+    <section style="margin-top:20px">
+      <h2 style="margin:0 0 8px">Interactive Map</h2>
+      <div id="map" class="map"></div>
+      <p style="color:#475569;margin-top:8px">Click pins to view quick tips, save to bucket list, view live weather, and generate custom itineraries for that place.</p>
+    </section>
+
+    <!-- Tools row -->
+    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:20px">
+      <div class="panel">
+        <h4>Travel Cost Calculator</h4>
+        <p style="margin:0 0 8px;color:#475569">Estimate trip cost quickly.</p>
+        <div style="display:grid;gap:8px">
+          <input id="cc_dest" placeholder="Destination">
+          <input type="number" id="cc_days" placeholder="Days" value="5">
+          <select id="cc_level"><option value="budget">Budget</option><option value="mid">Mid</option><option value="luxury">Luxury</option></select>
+          <button onclick="estimateCost()">Estimate</button>
+          <div id="cc_result" style="margin-top:8px;font-weight:700"></div>
         </div>
       </div>
 
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-        <button id="downloadPdf" class="btn" style="display:none">Download PDF</button>
-        <button id="savePlan" class="btn secondary" style="display:none">Save Plan</button>
-        <button id="sharePlan" class="btn" style="display:none">Share</button>
+      <div class="panel">
+        <h4>Quizzes & Fun</h4>
+        <p style="margin:0 0 8px;color:#475569">Keep sessions longer with personality quizzes.</p>
+        <button onclick="startQuiz()">Which hidden gem fits you?</button>
+        <div id="quizArea" style="margin-top:10px"></div>
       </div>
-    </div>
-  </div>
 
-  <!-- Bucket Modal -->
-  <div id="bucketModal" class="modal" aria-hidden="true">
-    <div class="panel">
-      <h3>My Bucket List</h3>
-      <div id="bucketListGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px"></div>
-      <div style="text-align:right;margin-top:10px">
-        <button onclick="closeBucketModal()">Close</button>
+      <div class="panel">
+        <h4>Trending & Social Feed</h4>
+        <p style="margin:0 0 8px;color:#475569">Live trending gems (based on visits) and curated IG posts.</p>
+        <div id="trendingList"></div>
       </div>
-    </div>
-  </div>
+    </section>
 
-<script>
-/* ---------------------------
-   App state
-   --------------------------- */
-const demo = {
-  id: 1,
-  name: document.getElementById('demoTitle').textContent,
-  desc: document.getElementById('demoDesc').textContent,
-  lat: 62.0,
-  lng: -6.8
-};
+    <!-- UGC Reviews + FAQs -->
+    <section style="margin-top:20px;display:grid;grid-template-columns:2fr 1fr;gap:20px">
+      <div>
+        <div class="panel">
+          <h3>Traveler Reviews (User Generated)</h3>
+          <div id="reviews"></div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <input id="rv_name" placeholder="Your name">
+            <input id="rv_place" placeholder="Place you visited">
+            <button onclick="submitReview()">Submit</button>
+          </div>
+          <textarea id="rv_text" placeholder="Share one tip" style="width:100%;margin-top:8px;padding:8px;border-radius:8px"></textarea>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <h3>FAQs & Rich Snippets</h3>
+          <details><summary>How do I save a place?</summary><p>Add to bucket list from card or map — it syncs to your browser and to your account when connected.</p></details>
+          <details><summary>Is weather live?</summary><p>Yes — powered by wttr.in and Open-Meteo for more advanced server integrations.</p></details>
+        </div>
 
-const plannerModal = document.getElementById('plannerModal');
-const planBtn = document.getElementById('planBtn');
-const cancelPlanner = document.getElementById('cancelPlanner');
-const generateBtn = document.getElementById('generateBtn');
-const itineraryArea = document.getElementById('itineraryArea');
-const plDest = document.getElementById('plDest');
-const downloadPdfBtn = document.getElementById('downloadPdf');
-const savePlanBtn = document.getElementById('savePlan');
-const sharePlanBtn = document.getElementById('sharePlan');
-const currencySelect = document.getElementById('currencySelect');
-const convertedCostEl = document.getElementById('convertedCost');
-const costEstimateEl = document.getElementById('costEstimate');
-const weatherBox = document.getElementById('weatherBox');
+        <div class="panel" style="margin-top:12px">
+          <h3>Badges & Rewards</h3>
+          <div id="badgesArea">No badges yet — explore and earn!</div>
+        </div>
+      </div>
+    </section>
 
-document.getElementById('plDest').textContent = demo.name.split(',')[0];
+  </main>
 
-let miniMap, routeLayer;
-let leafletLoaded = false;
-let jsPDFLoaded = false;
+  <div class="floating-chat" onclick="toggleChat()">Chat with Travel AI</div>
 
-/* ---------------------------
-   Utility: dynamic load
-   --------------------------- */
-function loadCss(href){ return new Promise((res, rej)=>{ if(document.querySelector(`link[href="${href}"]`)) return res(); const l = document.createElement('link'); l.rel='stylesheet'; l.href = href; l.onload = res; l.onerror = rej; document.head.appendChild(l); }); }
-function loadScript(src){ return new Promise((res, rej)=>{ if(document.querySelector(`script[data-src="${src}"]`)) return res(); const s = document.createElement('script'); s.src = src; s.async = false; s.setAttribute('data-src', src); s.onload = res; s.onerror = rej; document.body.appendChild(s); }); }
+  <footer>
+    © 2025 Underrated Travel — Built with AI Precision • Images: Unsplash • Map: OpenStreetMap
+  </footer>
 
-/* ---------------------------
-   Map (Leaflet) - deferred
-   --------------------------- */
-async function initLeaflet(){
-  if(leafletLoaded) return;
-  leafletLoaded = true;
-  try {
-    await loadCss('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
-    await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
-    miniMap = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView([demo.lat, demo.lng], 9);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
-    routeLayer = L.layerGroup().addTo(miniMap);
-    document.getElementById('miniMap').setAttribute('aria-hidden', 'false');
-  } catch(e){ console.warn('Leaflet failed', e); }
-}
+  <!-- Scripts (no external AI required; hooks included for server/OpenAI integration) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script>
+    /*************************************************************************
+     * Data - sample destinations (in production this should be dynamic/API)
+     *************************************************************************/
+    const DESTS = [
+      {id:1,name:'Faroe Islands',region:'Europe',type:'Nature',budget:'mid',lat:62.0,lon:-6.8,thumb:'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=60'},
+      {id:2,name:'Musandam, Oman',region:'Asia',type:'Nature',budget:'mid',lat:25.8,lon:56.4,thumb:'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=60'},
+      {id:3,name:'Azores, Portugal',region:'Europe',type:'Nature',budget:'mid',lat:37.7,lon:-25.4,thumb:'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=60'},
+      {id:4,name:'Ha Giang Loop',region:'Asia',type:'Adventure',budget:'budget',lat:22.7,lon:104.98,thumb:'https://images.unsplash.com/photo-1565075791519-7c6e5f4a5f9f?w=1200&q=60'},
+      {id:5,name:'Bhutan',region:'Asia',type:'Culture',budget:'luxury',lat:27.5,lon:90.5,thumb:'https://images.unsplash.com/photo-1526481280698-9d3f5f7d3b6a?w=1200&q=60'}
+    ];
 
-/* ---------------------------
-   Open modal / focus
-   --------------------------- */
-let lastActive = null;
-planBtn.addEventListener('click', async () => {
-  lastActive = document.activeElement;
-  plDest.textContent = demo.name.split(',')[0];
-  plannerModal.classList.add('open');
-  ensureStartDate();
-  // defer-load map and weather when modal opens
-  initLeaflet().then(()=> miniMap && setTimeout(()=> miniMap.invalidateSize(), 120));
-  // fetch currency list & user currency
-  await initCurrency();
-  // fetch weather
-  fetchWeather(demo.lat, demo.lng);
-  document.addEventListener('keydown', handleEscape, {capture:true});
-});
-cancelPlanner.addEventListener('click', closePlanner);
-function closePlanner(){
-  plannerModal.classList.remove('open');
-  itineraryArea.innerHTML = '';
-  downloadPdfBtn.style.display = 'none';
-  savePlanBtn.style.display = 'none';
-  sharePlanBtn.style.display = 'none';
-  if(routeLayer && routeLayer.clearLayers) routeLayer.clearLayers();
-  document.removeEventListener('keydown', handleEscape, {capture:true});
-  lastActive && lastActive.focus && lastActive.focus();
-}
-function handleEscape(e){ if(e.key === 'Escape') closePlanner(); }
-document.getElementById('plannerModal').addEventListener('click', (e)=>{ if(e.target.id === 'plannerModal') closePlanner(); });
+    /*************************************************************************
+     * Lightweight utilities
+     *************************************************************************/
+    const $ = sel => document.querySelector(sel);
+    const make = (tag,attrs={},...children)=>{const el=document.createElement(tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));children.flat().forEach(c=>typeof c==='string'?el.appendChild(document.createTextNode(c)):el.appendChild(c));return el}
 
-function ensureStartDate(){
-  const s = document.getElementById('startDate');
-  if(!s.value){ const d = new Date(); d.setDate(d.getDate()+7); s.value = d.toISOString().slice(0,10); }
-}
-
-/* ---------------------------
-   Itinerary generation (local fallback)
-   --------------------------- */
-function generateItinerary(){
-  const start = document.getElementById('startDate').value;
-  const days = parseInt(document.getElementById('duration').value, 10);
-  const budget = document.getElementById('budgetLevel').value;
-  const traveler = document.getElementById('travelerType').value;
-  const notes = document.getElementById('notes').value;
-  if(!start){ alert('Please choose a start date'); return; }
-
-  // simple keyword-based activities
-  const keywords = (demo.desc + ' ' + notes).toLowerCase();
-  const activities = [];
-  if(keywords.includes('hike') || keywords.includes('cliff')) activities.push('Hike a scenic trail');
-  if(keywords.includes('whale')) activities.push('Whale watching tour');
-  if(keywords.includes('fjord')) activities.push('Boat cruise of the fjords');
-  if(keywords.includes('monastery')) activities.push('Cultural village visit');
-  if(activities.length === 0) activities.push('Local highlights and photo spots');
-
-  const plan = [];
-  for(let d=0; d<days; d++){
-    const date = new Date(start); date.setDate(date.getDate() + d);
-    const day = { day: d+1, date: date.toISOString().slice(0,10), items: [] };
-    day.items.push({ time: 'Morning', activity: activities[d % activities.length] });
-    day.items.push({ time: 'Afternoon', activity: 'Explore local town' });
-    if(traveler === 'couple') day.items.push({ time: 'Evening', activity: 'Cozy dinner' });
-    else if(traveler === 'solo') day.items.push({ time: 'Evening', activity: 'Photography walk' });
-    else day.items.push({ time: 'Evening', activity: 'Family dinner' });
-    plan.push(day);
-  }
-
-  const base = (budget === 'low')?60:(budget === 'mid')?120:260;
-  const estimate = base * days;
-
-  renderPlan(plan, estimate);
-  downloadPdfBtn.style.display = 'inline-block';
-  savePlanBtn.style.display = 'inline-block';
-  sharePlanBtn.style.display = 'inline-block';
-
-  // draw demo route on map
-  if(routeLayer && window.L && L.polyline){
-    const routeCoords = [];
-    for(let i=0;i<6;i++){ const angle=(i/6)*Math.PI*2; const r=0.18; routeCoords.push([demo.lat+Math.sin(angle)*r, demo.lng+Math.cos(angle)*r]); }
-    routeLayer.clearLayers();
-    L.polyline(routeCoords, { color: '#e76f51' }).addTo(routeLayer);
-    routeLayer.addLayer(L.circleMarker([demo.lat, demo.lng], { radius:6, fillColor:'#2a9d8f', color:'#fff', weight:2 }).bindPopup(demo.name));
-    try{ miniMap.fitBounds(L.latLngBounds(routeCoords).pad(0.5)); } catch(e){}
-  }
-
-  window._lastGeneratedPlan = { meta: { dest: demo, start, days, budget, traveler, notes, estimate }, plan };
-  updateCostDisplay(estimate);
-}
-
-generateBtn.addEventListener('click', generateItinerary);
-
-/* render plan HTML */
-function renderPlan(plan, estimate){
-  itineraryArea.innerHTML = `<h4>Estimated cost: USD ${estimate.toFixed(0)}</h4>` + plan.map(d => `<div class="it-day"><strong>Day ${d.day} — ${d.date}</strong><ul>${d.items.map(i => `<li><em>${i.time}</em>: ${i.activity}</li>`).join('')}</ul></div>`).join('');
-}
-
-/* ---------------------------
-   Currency conversion (exchangerate.host)
-   - caches rates in localStorage for 24 hours
-   - auto-detect user's currency via Intl (fallback to USD)
-   --------------------------- */
-const RATES_KEY = 'hg_rates_v1';
-async function fetchRates(){
-  const cachedRaw = localStorage.getItem(RATES_KEY);
-  if(cachedRaw){
-    try{
-      const parsed = JSON.parse(cachedRaw);
-      const age = Date.now() - parsed.t;
-      if(age < 24 * 3600 * 1000 && parsed.rates){ // cached under 24h
-        return parsed;
-      }
-    } catch(e){}
-  }
-  // fetch fresh
-  try{
-    const r = await fetch('https://api.exchangerate.host/latest?base=USD');
-    const j = await r.json();
-    if(j && j.rates){
-      const store = { t: Date.now(), rates: j.rates };
-      localStorage.setItem(RATES_KEY, JSON.stringify(store));
-      return store;
+    /*************************************************************************
+     * Render destination cards
+     *************************************************************************/
+    function renderGrid(list=DESTS){
+      const grid = $('#destGrid');grid.innerHTML='';
+      list.forEach(d=>{
+        const card = make('div',{class:'card','data-id':d.id});
+        const img = make('img',{src:d.thumb,loading:'lazy',alt:d.name});
+        const body = make('div',{class:'body'});
+        const h = make('h3',{},d.name);
+        const p = make('p',{},`${d.type} • ${d.region}`);
+        const meta = make('div',{class:'meta'});
+        const left = make('div',{},make('span',{},`From: ${d.budget==='budget'?'$650':d.budget==='mid'?'$950':'$1800'}`));
+        const actions = make('div',{});
+        const saveBtn = make('button',{class:'btn-ghost',onclick:`toggleSave(${d.id})`},'Save');
+        const itinBtn = make('button',{},'Itinerary');itinBtn.onclick=()=>{prefillPlanner(d.name);generateItinerary();}
+        const mapBtn = make('button',{class:'btn-ghost'},'View');mapBtn.onclick=()=>{focusMap(d.lat,d.lon,d.id)}
+        actions.appendChild(saveBtn);actions.appendChild(itinBtn);actions.appendChild(mapBtn);
+        card.appendChild(img);body.appendChild(h);body.appendChild(p);meta.appendChild(left);meta.appendChild(actions);body.appendChild(meta);card.appendChild(body);
+        grid.appendChild(card);
+      });
     }
-  } catch(e){ console.warn('Failed to fetch rates', e); }
-  // fallback to cached if any
-  try{ return JSON.parse(cachedRaw); } catch(e){ return null; }
-}
 
-async function initCurrency(){
-  const ratesStore = await fetchRates();
-  const rates = ratesStore && ratesStore.rates ? ratesStore.rates : { USD:1 };
-  // build select list (show popular currencies first)
-  const popular = ['USD','EUR','GBP','AUD','CAD','JPY','INR','CNY'];
-  currencySelect.innerHTML = '';
-  // add popular first
-  const added = new Set();
-  popular.forEach(code => { if(rates[code]){ const opt = document.createElement('option'); opt.value = rates[code]; opt.textContent = code; currencySelect.appendChild(opt); added.add(code); }});
-  // then add remaining
-  Object.keys(rates).sort().forEach(code => { if(added.has(code)) return; const opt = document.createElement('option'); opt.value = rates[code]; opt.textContent = code; currencySelect.appendChild(opt); });
-  // detect user's currency via Intl
-  let userCurrency = 'USD';
-  try{
-    userCurrency = (Intl.DateTimeFormat().resolvedOptions().locale || 'en-US').split('-')[1] || userCurrency;
-    // Better fallback: use navigator.language to map to currency? For simplicity, stick to USD fallback
-  }catch(e){}
-  // If the detected 'country' maps to a currency code in rates, select it
-  if(rates[userCurrency]) {
-    currencySelect.value = rates[userCurrency];
-  } else {
-    // try to get currency from navigator.language country
-    const locale = navigator.language || navigator.userLanguage || 'en-US';
-    const country = locale.split('-')[1];
-    if(country){
-      // naive mapping for some common countries:
-      const mapping = { US:'USD', GB:'GBP', DE:'EUR', FR:'EUR', JP:'JPY', IN:'INR', CN:'CNY', AU:'AUD', CA:'CAD' };
-      const cc = mapping[country];
-      if(cc && rates[cc]) currencySelect.value = rates[cc];
-      else currencySelect.selectedIndex = 0;
-    } else currencySelect.selectedIndex = 0;
-  }
-  currencySelect.addEventListener('change', convertCurrency);
-  // if cost present, convert now
-  const estimateText = window._lastGeneratedPlan?.meta?.estimate || null;
-  if(estimateText) updateCostDisplay(estimateText);
-}
+    renderGrid();
 
-/* update cost display and conversion */
-function updateCostDisplay(estimate){
-  costEstimateEl.innerHTML = `Estimated cost: <strong>USD ${estimate.toFixed(0)}</strong>`;
-  convertCurrency();
-}
-
-function convertCurrency(){
-  const estimate = window._lastGeneratedPlan?.meta?.estimate || (() => {
-    // read displayed USD value if present
-    const txt = costEstimateEl.textContent || '';
-    const found = txt.match(/\$?\s*([0-9,\.]+)/);
-    return found ? parseFloat(found[1].replace(/,/g,'')) : 0;
-  })();
-  const rate = parseFloat(currencySelect.value) || 1;
-  const code = currencySelect.selectedOptions[0]?.textContent || 'USD';
-  if(isFinite(estimate) && isFinite(rate)){
-    const converted = (estimate * rate).toFixed(2);
-    convertedCostEl.textContent = `≈ ${converted} ${code}`;
-  } else {
-    convertedCostEl.textContent = '';
-  }
-}
-
-/* ---------------------------
-   Weather (Open-Meteo)
-   - current weather + 3-day daily temps
-   --------------------------- */
-async function fetchWeather(lat, lon){
-  weatherBox.setAttribute('aria-hidden','false');
-  weatherBox.innerHTML = '<div class="small">Loading weather…</div>';
-  try{
-    // current weather and daily (3-day) forecast
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3`;
-    const r = await fetch(url);
-    const j = await r.json();
-    if(j && j.current_weather){
-      const cur = j.current_weather;
-      let html = `<div><strong>Now:</strong> ${cur.temperature}°C — <span class="muted">${cur.weathercode ?? ''}</span> (winds ${cur.windspeed} km/h)</div>`;
-      if(j.daily && j.daily.time){
-        html += `<div class="forecast">`;
-        for(let i=0;i<j.daily.time.length;i++){
-          const day = j.daily.time[i];
-          const tmax = j.daily.temperature_2m_max[i];
-          const tmin = j.daily.temperature_2m_min[i];
-          html += `<div class="day"><div style="font-weight:600">${day}</div><div>${tmin}° / ${tmax}°</div></div>`;
-        }
-        html += `</div>`;
-      }
-      weatherBox.innerHTML = html;
-    } else {
-      weatherBox.innerHTML = `<div class="small">Weather unavailable</div>`;
+    /*************************************************************************
+     * Filters & search
+     *************************************************************************/
+    function applyFilters(){
+      const region = $('#regionF').value; const type = $('#typeF').value; const budget = $('#budgetF').value; const q = ($('#globalSearch').value||'').toLowerCase();
+      let filtered = DESTS.filter(d=> (region?d.region===region:true) && (type?d.type===type:true) && (budget?d.budget===budget:true) && (!q||d.name.toLowerCase().includes(q)||d.type.toLowerCase().includes(q)) );
+      renderGrid(filtered);
     }
-  } catch(e){ console.warn('Weather fetch failed', e); weatherBox.innerHTML = `<div class="small">Weather unavailable</div>`; }
-}
+    function resetFilters(){ $('#regionF').value='';$('#typeF').value='';$('#budgetF').value='';$('#globalSearch').value='';renderGrid(); }
+    function liveSuggest(val){ applyFilters(); }
 
-/* ---------------------------
-   Save plan / share / PDF
-   --------------------------- */
-savePlanBtn.addEventListener('click', ()=>{
-  const data = window._lastGeneratedPlan;
-  if(!data){ alert('No plan to save'); return; }
-  const saved = JSON.parse(localStorage.getItem('hg_saved_plans') || '[]');
-  saved.push({ id: Date.now(), created: new Date().toISOString(), data });
-  localStorage.setItem('hg_saved_plans', JSON.stringify(saved));
-  alert('Plan saved.');
-});
+    /*************************************************************************
+     * Bucket list (localStorage) + badges
+     *************************************************************************/
+    function loadBucket(){ return JSON.parse(localStorage.getItem('bucket')||'[]'); }
+    function saveBucket(arr){ localStorage.setItem('bucket',JSON.stringify(arr)); renderBucket(); updatePoints(); }
+    function addToBucket(){ const v = $('#addBucket').value.trim(); if(!v) return alert('Enter a place'); const arr=loadBucket(); arr.push({name:v,added:Date.now()}); saveBucket(arr); $('#addBucket').value=''; }
+    function toggleSave(id){ const dest = DESTS.find(d=>d.id==id); if(!dest) return; const arr=loadBucket(); if(arr.find(x=>x.name===dest.name)){ const newa=arr.filter(x=>x.name!==dest.name); saveBucket(newa); } else { arr.push({name:dest.name,added:Date.now()}); saveBucket(arr);} }
+    function renderBucket(){ const arr=loadBucket(); const el = $('#bucketList'); el.innerHTML=''; if(arr.length===0) el.innerHTML='<em>No saved places yet</em>'; arr.forEach((b,i)=>{ const row = document.createElement('div'); row.style.display='flex';row.style.justifyContent='space-between';row.style.alignItems='center'; row.style.padding='6px 0'; row.innerHTML=`<div>${b.name}</div>`; const rm = document.createElement('button'); rm.textContent='Remove'; rm.onclick=()=>{ const a=loadBucket(); a.splice(i,1); saveBucket(a); }; row.appendChild(rm); el.appendChild(row); }); renderBadges(); }
 
-sharePlanBtn.addEventListener('click', async ()=>{
-  const p = window._lastGeneratedPlan;
-  if(!p){ alert('No plan generated'); return; }
-  const str = JSON.stringify(p);
-  const b64 = btoa(unescape(encodeURIComponent(str))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-  const url = `${location.origin}${location.pathname}?plan=${b64}`;
-  if(navigator.share){
-    try{ await navigator.share({ title: `${p.meta.dest.name} trip`, text: `My trip plan`, url }); return; } catch(e){}
-  }
-  try{ await navigator.clipboard.writeText(url); alert('Share link copied to clipboard'); } catch(e){ prompt('Copy link', url); }
-});
+    function updatePoints(){ const pts = Math.min(999, loadBucket().length*10 + (JSON.parse(localStorage.getItem('visits')||'0')) ); $('#pointsBadge').textContent = `Points: ${pts}`; localStorage.setItem('points',pts); }
 
-downloadPdfBtn.addEventListener('click', async ()=>{
-  const last = window._lastGeneratedPlan;
-  if(!last){ alert('No plan'); return; }
-  if(!jsPDFLoaded){
-    try{ await loadScript('https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'); jsPDFLoaded = true; }catch(e){ alert('Failed to load PDF library'); return; }
-  }
-  const doc = new jspdf.jsPDF({ unit:'pt', format:'a4' });
-  const title = `${last.meta.dest.name} — ${last.meta.start} (${last.meta.days} days)`;
-  doc.setFontSize(14); doc.text(title, 40, 50);
-  doc.setFontSize(10); doc.text(`Estimated cost: USD ${last.meta.estimate.toFixed(0)}`, 40, 70);
-  let y = 100;
-  last.plan.forEach(day => {
-    doc.setFontSize(11); doc.text(`Day ${day.day} — ${day.date}`, 40, y); y += 16;
-    day.items.forEach(it => { doc.setFontSize(10); doc.text(`${it.time}: ${it.activity}`, 60, y); y += 14; if(y>740){ doc.addPage(); y = 40; } });
-    y += 8;
-  });
-  doc.save(`${last.meta.dest.name.replace(/[^a-z0-9]/gi,'_')}_itinerary.pdf`);
-});
+    function renderBadges(){ const el = $('#badgesArea'); const arr=loadBucket(); const badges = [];
+      if(arr.length>=1) badges.push('Explorer'); if(arr.length>=5) badges.push('Globetrotter'); if((JSON.parse(localStorage.getItem('visits')||'0'))>10) badges.push('Frequent Planner');
+      if(badges.length===0) el.textContent='No badges yet — save 1 place to earn your first badge.'; else el.innerHTML = badges.map(b=>`<div class='badge' style='margin:6px'>${b}</div>`).join('');
+    }
 
-/* ---------------------------
-   Restore shared plan from ?plan=
-   --------------------------- */
-function decodePlanFromQuery(){
-  const params = new URLSearchParams(location.search);
-  const b64 = params.get('plan');
-  if(!b64) return null;
-  try{
-    const padded = b64.replace(/-/g,'+').replace(/_/g,'/');
-    const json = decodeURIComponent(escape(atob(padded)));
-    return JSON.parse(json);
-  } catch(e){ console.warn('Failed to decode plan', e); return null; }
-}
-async function restoreSharedIfAny(){
-  const shared = decodePlanFromQuery();
-  if(!shared) return;
-  // open modal and render
-  planBtn.click();
-  // give modal a moment to open
-  setTimeout(()=>{
-    window._lastGeneratedPlan = shared;
-    renderPlan(shared.plan, shared.meta.estimate || shared.estimate || (shared.meta?.estimate ?? 0));
-    updateCostDisplay(shared.meta?.estimate || shared.estimate || 0);
-    downloadPdfBtn.style.display = 'inline-block';
-    savePlanBtn.style.display = 'inline-block';
-    sharePlanBtn.style.display = 'inline-block';
-    injectJSONLD(shared);
-  }, 300);
-}
-restoreSharedIfAny();
+    // init
+    renderBucket(); updatePoints(); renderBadges();
 
-/* ---------------------------
-   JSON-LD injection for generated plan (helpful for debugging)
-   --------------------------- */
-function injectJSONLD(p){
-  const existing = document.getElementById('plan-jsonld'); if(existing) existing.remove();
-  const ld = {
-    "@context":"https://schema.org",
-    "@type":"TouristTrip",
-    "name": `${p.meta.dest.name} — ${p.meta.start}`,
-    "description": p.meta.dest.desc || '',
-    "touristType": p.meta.traveler,
-    "totalTime": `P${p.meta.days}D`,
-    "estimatedCost": { "@type":"MonetaryAmount", "currency":"USD", "value": p.meta.estimate }
-  };
-  const s = document.createElement('script'); s.type='application/ld+json'; s.id='plan-jsonld'; s.textContent = JSON.stringify(ld, null, 2); document.head.appendChild(s);
-}
-
-/* ---------------------------
-   Bucket list UI
-   --------------------------- */
-function openBucketModal(){
-  const list = JSON.parse(localStorage.getItem('hg_favs') || '[]');
-  const grid = document.getElementById('bucketListGrid'); grid.innerHTML = '';
-  if(list.length === 0) grid.innerHTML = '<p class="small">Your bucket list is empty.</p>'; else {
-    list.forEach(id => {
-      const d = document.createElement('div'); d.style.position='relative';
-      d.style.borderRadius='10px'; d.style.overflow='hidden'; d.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)';
-      d.innerHTML = `<img src="https://picsum.photos/seed/${id}/200/120" loading="lazy" style="display:block;width:100%;height:90px;object-fit:cover"><button style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer" onclick="removeFromBucket(${id})">×</button>`;
-      grid.appendChild(d);
+    /*************************************************************************
+     * Map (Leaflet) with pins and interactions
+     *************************************************************************/
+    const map = L.map('map',{zoomControl:false}).setView([20,0],2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+    const markers = {};
+    DESTS.forEach(d=>{
+      const m = L.marker([d.lat,d.lon]).addTo(map).bindPopup(`<b>${d.name}</b><br>${d.type} • ${d.region}<br><button onclick="saveFromMap(${d.id})">Save</button> <button onclick="prefillPlanner('${d.name}')">Plan</button>`);
+      markers[d.id]=m;
     });
-  }
-  document.getElementById('bucketModal').classList.add('open');
-}
-function closeBucketModal(){ document.getElementById('bucketModal').classList.remove('open'); }
-function removeFromBucket(id){ let list=JSON.parse(localStorage.getItem('hg_favs')||'[]'); list=list.filter(x=>x!==id); localStorage.setItem('hg_favs', JSON.stringify(list)); openBucketModal(); }
-document.getElementById('viewBucketBtn').addEventListener('click', openBucketModal);
-document.getElementById('saveDemoBtn').addEventListener('click', ()=>{
-  const favs=JSON.parse(localStorage.getItem('hg_favs')||'[]'); if(!favs.includes(demo.id)) favs.push(demo.id); localStorage.setItem('hg_favs', JSON.stringify(favs)); alert('Saved to favorites'); });
+    function saveFromMap(id){ toggleSave(id); map.closePopup(); }
+    function focusMap(lat,lon,id){ map.setView([lat,lon],8); if(id && markers[id]) markers[id].openPopup(); }
 
-/* expose removal for inline onclick */
-window.removeFromBucket = removeFromBucket;
-window.closeBucketModal = closeBucketModal;
+    function openMap(){ window.scrollTo({top: document.getElementById('map').offsetTop-80, behavior:'smooth'}); }
 
-/* ---------------------------
-   Small accessibility helpers
-   --------------------------- */
-document.addEventListener('focusin', (e)=>{
-  if(!plannerModal.classList.contains('open')) return;
-  const panel = plannerModal.querySelector('.modal-panel');
-  if(!panel.contains(e.target)) panel.focus();
-});
+    /*************************************************************************
+     * Itinerary generator — client-side 'AI' template with hooks for real AI
+     *************************************************************************/
+    function daysBetween(a,b){ const A=new Date(a),B=new Date(b); return Math.max(1,Math.round((B-A)/(1000*60*60*24)) + 1); }
+    function generateItinerary(){ const dest=$('#tp_dest').value||'a chosen destination'; const start=$('#tp_start').value; const end=$('#tp_end').value; const style=$('#tp_style').value||'Nature'; const budget=$('#tp_budget').value;
+      if(!start||!end) return alert('Please select start and end dates'); const days = daysBetween(start,end);
+      // Simple deterministic itinerary generator — replace with server OpenAI for richer plans
+      let out = `Itinerary for ${dest} — ${start} to ${end} (${days} days)
 
-/* preload PDF library after a few seconds (non-blocking) */
-setTimeout(()=>{ loadScript('https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js').then(()=>jsPDFLoaded=true).catch(()=>{}); }, 4000);
-</script>
+`;
+      for(let i=1;i<=days;i++){
+        out += `Day ${i}: `;
+        if(style==='Nature'){ out += i===1?`Arrival & easy walk to viewpoint.`: (i%3===0?`Full-day hike / nature reserve visit.`:`Coastal/mountain exploration and local picnic.`); }
+        else if(style==='Culture'){ out += i===1?`Arrival & local market stroll.`: (i%2===0?`Museum / heritage site visits.`:`Cooking class & cultural show.`); }
+        else if(style==='Adventure'){ out += i===1?`Arrival & gear check.`: (i%2===0?`Multi-hour trek or water activity.`:`Half-day excursion + local village visit.`); }
+        else { out += `Relaxed exploration, cafes and photo stops.` }
+        out += `
+`;
+      }
+      out += `
+Estimated daily budget: ${budget==='budget'? '$50-$80': budget==='mid'? '$90-$180': '$200+'}`;
+      $('#itineraryResult').innerHTML = `<div class='itinerary'>${out}</div><div style='margin-top:8px'><button onclick="saveItinerary()">Save Itinerary</button> <button onclick="shareItinerary()">Share</button></div>`;
+      // award points
+      const visits = Number(localStorage.getItem('visits')||0)+1; localStorage.setItem('visits',visits); updatePoints(); renderBadges();
+    }
+    function prefillPlanner(name){ $('#tp_dest').value = name; window.scrollTo({top:document.querySelector('#tp_dest').getBoundingClientRect().top + window.scrollY - 80, behavior:'smooth'}); }
+    function saveItinerary(){ const it = $('#itineraryResult').innerText; const stored = JSON.parse(localStorage.getItem('itins')||'[]'); stored.push({id:Date.now(),text:it}); localStorage.setItem('itins',JSON.stringify(stored)); alert('Itinerary saved to your browser. Connect account to sync.'); }
+    function shareItinerary(){ alert('Share link generated (placeholder). Integrate server route to persist and share publicly.'); }
+
+    /*************************************************************************
+     * Live weather via wttr.in (no key) — graceful fallback
+     *************************************************************************/
+    async function fetchWeather(){ const q = $('#weatherLookup').value.trim(); if(!q) return alert('Enter a city'); $('#weatherCard').textContent='Fetching...';
+      try{ const res = await fetch(`https://wttr.in/${encodeURIComponent(q)}?format=j1`); if(!res.ok) throw new Error('no'); const data = await res.json(); const cur = data.current_condition[0]; const out = `${q}: ${cur.temp_C}°C, ${cur.weatherDesc[0].value}. Feels like ${cur.FeelsLikeC}°C.`; $('#weatherCard').textContent = out; }catch(e){ $('#weatherCard').textContent = 'Weather unavailable. Try another place.' }
+    }
+
+    function getWeatherFor(dest){ $('#weatherLookup').value = dest; fetchWeather(); }
+
+    /*************************************************************************
+     * Cost calculator
+     *************************************************************************/
+    function estimateCost(){ const dest = $('#cc_dest').value||'destination'; const days = Number($('#cc_days').value||1); const level = $('#cc_level').value; const base = level==='budget'?70:level==='mid'?140:300; const total = Math.round(base*days + (Math.random()*200)); $('#cc_result').textContent = `Estimated trip cost to ${dest}: ~$${total}`; }
+
+    /*************************************************************************
+     * Quiz — simple choose flow
+     *************************************************************************/
+    function startQuiz(){ const qArea = $('#quizArea'); qArea.innerHTML = `<div>Which activity do you prefer?<br><button onclick="finishQuiz('hike')">Hiking</button> <button onclick="finishQuiz('muse')">Museums</button> <button onclick="finishQuiz('sea')">Beaches</button></div>`; }
+    function finishQuiz(ans){ const map = {hike:'Azores, Portugal',muse:'Bhutan',sea:'Musandam, Oman'}; $('#quizArea').innerHTML = `We recommend: <strong>${map[ans]}</strong> — <button onclick="prefillPlanner('${map[ans]}')">Plan Now</button>` }
+
+    /*************************************************************************
+     * Trending & reviews (UGC) — stored locally for demo
+     *************************************************************************/
+    function loadTrending(){ const list = DESTS.slice(0,4).map(d=>`<div style='padding:8px 0;border-bottom:1px solid #f1f5f9'><strong>${d.name}</strong><div style='color:#6b7280'>${d.region} • ${d.type}</div></div>`).join(''); $('#trendingList').innerHTML = list; }
+    function submitReview(){ const name=$('#rv_name').value||'Anonymous'; const place=$('#rv_place').value||'Unknown'; const text=$('#rv_text').value||''; if(!text) return alert('Write something'); const arr = JSON.parse(localStorage.getItem('reviews')||'[]'); arr.unshift({name,place,text,date:Date.now()}); localStorage.setItem('reviews',JSON.stringify(arr)); renderReviews(); $('#rv_text').value=''; }
+    function renderReviews(){ const arr = JSON.parse(localStorage.getItem('reviews')||'[]'); $('#reviews').innerHTML = arr.map(r=>`<div style='padding:10px 0;border-bottom:1px solid #f1f5f9'><strong>${r.name}</strong> <em style='color:#6b7280'>(${r.place})</em><div style='margin-top:6px'>${r.text}</div></div>`).join('') || '<em>No reviews yet, be the first!</em>'; }
+
+    loadTrending(); renderReviews();
+
+    /*************************************************************************
+     * Simple chatbot concierge — rule-based with hooks for server AI
+     *************************************************************************/
+    let chatOpen = false;
+    function toggleChat(){ if(!chatOpen){ openChatWindow(); } else { closeChatWindow(); } }
+    function openChatWindow(){ chatOpen=true; const div = document.createElement('div'); div.id='chatWin'; div.style.position='fixed'; div.style.right='20px'; div.style.bottom='80px'; div.style.width='320px'; div.style.maxWidth='calc(100% - 40px)'; div.style.borderRadius='12px'; div.style.boxShadow='0 20px 50px rgba(2,6,23,0.3)'; div.style.overflow='hidden'; div.style.zIndex=10001; div.innerHTML=`<div style='background:#1f2937;color:white;padding:12px;font-weight:700'>Travel Concierge</div><div id='chatLog' style='background:white;color:#0f172a;padding:12px;height:240px;overflow:auto'></div><div style='display:flex;padding:10px;background:#f8fafc'><input id='chatIn' placeholder='Ask about visas, weather, tips...' style='flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef2'><button onclick='sendChat()' style='margin-left:8px'>Send</button></div>`; document.body.appendChild(div); }
+    function closeChatWindow(){ chatOpen=false; const el = $('#chatWin'); if(el) el.remove(); }
+    function sendChat(){ const v = $('#chatIn').value.trim(); if(!v) return; const log = $('#chatLog'); const userHtml = `<div style='text-align:right'><div style='display:inline-block;background:#eef2ff;padding:8px;border-radius:8px;margin:6px 0'>${v}</div></div>`; log.innerHTML += userHtml; $('#chatIn').value=''; log.scrollTop = log.scrollHeight; // simple rule-based answers:
+      setTimeout(()=>{ let ans='I can help with planning, weather lookup, and tips. Try: "best time to visit Faroe Islands" or "budget for 7 days in Azores"';
+        const q = v.toLowerCase(); if(q.includes('best time')) ans = 'Generally spring and autumn (Apr-Jun, Sep-Oct) offer mild weather and fewer crowds for many hidden gems.'; else if(q.includes('visa')) ans = 'Visa rules depend on your nationality — check your government site or ask which country and I can summarize common rules.'; else if(q.includes('budget')) ans = 'Budget varies — use the Travel Cost Calculator: choose destination and days for a quick estimate.'; else if(q.includes('weather')){ const match = v.match(/in (.+)$/); if(match){ const city = match[1].trim(); getWeatherFor(city); ans = 'Fetching live weather — check the widget on the right.' } }
+        log.innerHTML += `<div style='text-align:left'><div style='display:inline-block;background:#f1f5f9;padding:8px;border-radius:8px;margin:6px 0'>${ans}</div></div>`; log.scrollTop = log.scrollHeight; },600);
+    }
+
+    /*************************************************************************
+     * Persistence: save user state to simulate personalization
+     *************************************************************************/
+    window.addEventListener('load',()=>{ if(!localStorage.getItem('visits')) localStorage.setItem('visits',0); localStorage.setItem('visits', Number(localStorage.getItem('visits'))+1); updatePoints(); renderBucket(); renderBadges(); renderGrid(); })
+
+    /*************************************************************************
+     * Tiny helpers exposed for inline HTML from map popups
+     *************************************************************************/
+    window.toggleSave = toggleSave; window.prefillPlanner = prefillPlanner; window.saveFromMap = saveFromMap; window.focusMap = focusMap; window.getWeatherFor = getWeatherFor;
+
+    /*************************************************************************
+     * Accessibility & SEO: JSON-LD schema (places sample)
+     *************************************************************************/
+    const schema = {
+      "@context":"https://schema.org",
+      "@graph": DESTS.map(d=>({"@type":"TouristDestination","name":d.name,"description":`${d.name} — ${d.type} in ${d.region}`,"geo":{"@type":"GeoCoordinates","latitude":d.lat,"longitude":d.lon}}))
+    };
+    const s = document.createElement('script'); s.type='application/ld+json'; s.textContent = JSON.stringify(schema); document.head.appendChild(s);
+
+    /*************************************************************************
+     * Small UX helpers
+     *************************************************************************/
+    function openPlanner(){ window.scrollTo({top: document.querySelector('#tp_dest').getBoundingClientRect().top + window.scrollY - 80, behavior:'smooth'}); $('#tp_dest').focus(); }
+  </script>
 </body>
 </html>
