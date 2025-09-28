@@ -3,638 +3,547 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Hidden Gems Travel — Full Experience (PWA + Share + LLM hooks)</title>
-<meta name="description" content="Discover underrated travel destinations, generate AI-style itineraries, save bucket list items, view interactive maps and export itineraries to PDF. PWA-enabled, shareable, and LLM-ready." />
-<meta property="og:title" content="Hidden Gems Travel — Full Experience" />
-<meta property="og:description" content="Generate personalized itineraries, save bucket list items, view interactive maps and export itineraries to PDF." />
-<meta property="og:image" content="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80" />
-<meta name="twitter:card" content="summary_large_image" />
+<title>Hidden Gems — Live Weather & Currency</title>
+<meta name="description" content="Plan trips, view live weather, and convert currency — all in a fast single-page travel planner."/>
+<meta name="robots" content="index,follow" />
 <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
-<link rel="preconnect" href="https://picsum.photos" crossorigin>
-
 <style>
-  :root{--card:#fff;--accent:#2a9d8f;--muted:#6b7280}
-  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:16px;background:#f6f7fb;color:#0b1220;line-height:1.4}
-  .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 8px 30px rgba(2,6,23,.06);display:flex;gap:12px;align-items:center}
-  .card-media{width:120px;height:80px;overflow:hidden;border-radius:8px;flex:0 0 120px}
+  :root{--accent:#2a9d8f;--muted:#6b7280;--card:#fff}
+  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:16px;background:#f6f7fb;color:#0b1220}
+  .container{max-width:980px;margin:0 auto}
+  .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 30px rgba(2,6,23,.06);display:flex;gap:14px;align-items:center}
+  .card-media{width:140px;height:90px;overflow:hidden;border-radius:10px;flex:0 0 140px}
   .card-media img{width:100%;height:100%;object-fit:cover;display:block}
-  .card-body h3{margin:0;font-size:1rem}
+  .card-body h3{margin:0;font-size:1.05rem}
+  .muted{color:var(--muted)}
   .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
-  .btn:focus{outline:3px solid rgba(42,157,143,.18)}
-  .muted{color:var(--muted);font-size:.95rem}
-  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .btn.secondary{background:#2b6cb0}
+  .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+
+  /* modal */
   .modal{position:fixed;inset:0;background:rgba(2,6,23,0.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
   .modal.open{display:flex}
-  .modal-panel{width:100%;max-width:820px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 20px 50px rgba(2,6,23,.2);max-height:90vh;overflow:auto}
+  .panel{width:100%;max-width:900px;background:#fff;border-radius:12px;padding:18px;box-shadow:0 20px 50px rgba(2,6,23,.2);max-height:90vh;overflow:auto}
+  .row{display:flex;gap:10px}
+  .row>div{flex:1}
   label{display:block;font-size:.9rem;color:var(--muted);margin-bottom:6px}
   input[type=date],select,input[type=number],textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e6e6e6}
-  .row{display:flex;gap:8px}
-  .row>div{flex:1}
-  .itinerary{margin-top:12px}
-  .it-day{background:#f8fafb;padding:10px;border-radius:8px;margin-bottom:8px}
   #miniMap{height:220px;border-radius:8px;margin-top:8px}
-  #bucketModal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:9999}
-  #bucketModal.open{display:flex}
-  #bucketModal .panel{background:#fff;padding:20px;border-radius:12px;max-width:640px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
-  #bucketListGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px}
-  .bucket-item{position:relative;border-radius:10px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.08)}
-  .bucket-item img{width:100%;height:90px;object-fit:cover;display:block}
-  .bucket-remove{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;line-height:20px;text-align:center}
-  .small{font-size:.85rem;color:var(--muted)}
+  .it-day{background:#f8fafb;padding:10px;border-radius:8px;margin-bottom:8px}
+  #weatherBox{margin-top:10px;padding:10px;border-radius:8px;background:#f3f8f7;border:1px solid #e6f1ee}
+  .forecast{display:flex;gap:8px;margin-top:8px}
+  .forecast .day{background:#fff;padding:8px;border-radius:8px;box-shadow:0 6px 18px rgba(2,6,23,0.03);flex:1;text-align:center}
+  .small{font-size:.9rem;color:var(--muted)}
   footer{margin-top:16px;font-size:.85rem;color:var(--muted)}
 </style>
 </head>
 <body>
-  <h1 style="font-size:1.25rem;margin:0 0 12px 0">Hidden Gems — Demo destination (PWA + Share + LLM hooks)</h1>
+  <div class="container">
+    <h1 style="margin:0 0 12px 0">Hidden Gems — Demo destination</h1>
 
-  <div class="card" id="demoCard">
-    <div class="card-media">
-      <img
-        src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=60"
-        srcset="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=400&q=60 400w,
-                https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=60 800w,
-                https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=60 1200w"
-        sizes="(max-width:480px) 120px, 160px"
-        alt="Faroe Islands"
-        loading="lazy"
-        width="320"
-        height="240"
-      >
-    </div>
-    <div class="card-body">
-      <h3 id="demoTitle">Faroe Islands, Denmark</h3>
-      <p id="demoDesc" class="muted" style="margin:.25rem 0">Dramatic cliffs, seabirds and Nordic solitude.</p>
-      <div class="controls">
-        <button class="btn" id="planBtn" aria-haspopup="dialog" aria-controls="plannerModal">Plan a Trip Here</button>
-        <button class="btn" id="saveDemoBtn" style="background:#2b6cb0">Save to Bucket List</button>
-        <button id="viewBucketBtn" style="margin-left:auto;background:#111827;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer">View My Bucket List</button>
+    <div class="card" id="demoCard">
+      <div class="card-media">
+        <img id="demoImg"
+             src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=60"
+             srcset="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=400&q=60 400w,
+                     https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=60 800w,
+                     https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=60 1200w"
+             sizes="(max-width:480px) 120px, 160px"
+             alt="Faroe Islands" loading="lazy" width="320" height="240">
+      </div>
+      <div class="card-body">
+        <h3 id="demoTitle">Faroe Islands, Denmark</h3>
+        <p id="demoDesc" class="muted" style="margin:.25rem 0">Dramatic cliffs, seabirds and Nordic solitude.</p>
+        <div class="controls">
+          <button class="btn" id="planBtn" aria-haspopup="dialog" aria-controls="plannerModal">Plan a Trip Here</button>
+          <button class="btn secondary" id="saveDemoBtn">Save to Bucket List</button>
+          <button id="viewBucketBtn" style="margin-left:auto;background:#111827;color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer">View My Bucket List</button>
+        </div>
       </div>
     </div>
+
+    <footer class="small">Tip: install as a PWA for offline usage. Weather and exchange rates are fetched live when you open the planner.</footer>
   </div>
 
   <!-- Planner Modal -->
   <div class="modal" id="plannerModal" role="dialog" aria-modal="true" aria-labelledby="plannerTitle">
-    <div class="modal-panel" role="document">
+    <div class="panel modal-panel" role="document" tabindex="0">
       <h2 id="plannerTitle" style="margin-top:0">AI Trip Planner — <span id="plDest">Faroe Islands</span></h2>
-      <div class="row" style="margin-bottom:8px">
-        <div class="field">
+
+      <div class="row" style="margin-bottom:10px">
+        <div>
           <label for="startDate">Start date</label>
-          <input type="date" id="startDate" aria-label="Start date">
+          <input type="date" id="startDate" />
         </div>
-        <div class="field">
+        <div>
           <label for="duration">Duration (days)</label>
-          <select id="duration" aria-label="Duration"><option value="3">3</option><option value="5" selected>5</option><option value="7">7</option><option value="10">10</option></select>
+          <select id="duration">
+            <option value="3">3</option><option value="5" selected>5</option><option value="7">7</option><option value="10">10</option>
+          </select>
         </div>
       </div>
-      <div class="row" style="margin-bottom:8px">
-        <div class="field"><label for="budgetLevel">Budget</label>
+
+      <div class="row" style="margin-bottom:10px">
+        <div>
+          <label for="budgetLevel">Budget</label>
           <select id="budgetLevel"><option value="low">Budget</option><option value="mid" selected>Mid-range</option><option value="luxury">Luxury</option></select>
         </div>
-        <div class="field"><label for="travelerType">Traveler type</label>
+        <div>
+          <label for="travelerType">Traveler type</label>
           <select id="travelerType"><option value="solo">Solo</option><option value="couple" selected>Couple</option><option value="family">Family</option></select>
         </div>
       </div>
-      <div class="field"><label for="notes">Notes</label><textarea id="notes" rows="2" placeholder="e.g. hiking, whales, photography" aria-label="Notes"></textarea></div>
 
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:8px">
-        <button id="closePlanner">Cancel</button>
-        <!-- Generate (LLM) tries serverless LLM endpoint if configured; else local fallback -->
-        <button class="btn" id="generateLLMBtn">Generate (LLM)</button>
-        <button class="btn" id="generateBtn" title="Local generator fallback">Generate (Local)</button>
+      <div>
+        <label for="notes">Notes</label>
+        <textarea id="notes" rows="2" placeholder="e.g. hiking, whales, photography"></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button id="cancelPlanner">Cancel</button>
+        <button class="btn" id="generateBtn">Generate Itinerary</button>
       </div>
 
       <div id="itineraryArea" class="itinerary" aria-live="polite"></div>
+
+      <!-- live weather -->
+      <div id="weatherBox" aria-hidden="true"></div>
+
+      <!-- map -->
       <div id="miniMap" aria-hidden="true"></div>
+
+      <!-- Estimated cost & currency -->
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;">
+        <div id="costEstimate" class="small">Estimated cost: <strong>USD 0</strong></div>
+        <div id="currencyConverter" style="display:flex;gap:8px;align-items:center">
+          <label class="small" for="currencySelect">Convert to</label>
+          <select id="currencySelect" aria-label="Target currency"></select>
+          <div id="convertedCost" class="small"></div>
+        </div>
+      </div>
 
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
         <button id="downloadPdf" class="btn" style="display:none">Download PDF</button>
-        <button id="savePlan" class="btn" style="background:#2b6cb0;display:none">Save Plan</button>
-        <button id="sharePlanBtn" style="display:none;border-radius:8px;padding:8px 12px;background:#0ea5a4;color:#fff;border:none;cursor:pointer">Share</button>
-      </div>
-
-      <div style="margin-top:10px" class="small">
-        <strong>LLM endpoint:</strong> <span id="llmInfo">Not configured</span>
+        <button id="savePlan" class="btn secondary" style="display:none">Save Plan</button>
+        <button id="sharePlan" class="btn" style="display:none">Share</button>
       </div>
     </div>
   </div>
 
-  <!-- Bucket Preview Modal -->
-  <div id="bucketModal" aria-hidden="true">
+  <!-- Bucket Modal -->
+  <div id="bucketModal" class="modal" aria-hidden="true">
     <div class="panel">
-      <h2 style="margin-top:0">My Bucket List</h2>
-      <div id="bucketListGrid"></div>
+      <h3>My Bucket List</h3>
+      <div id="bucketListGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px"></div>
       <div style="text-align:right;margin-top:10px">
         <button onclick="closeBucketModal()">Close</button>
-        <button onclick="exportBucketAsHTML()" style="background:#2a9d8f;color:#fff;border:none;border-radius:8px;padding:6px 12px;cursor:pointer">Export as HTML</button>
       </div>
     </div>
   </div>
 
-  <footer>
-    Tip: install as a PWA for offline usage. To enable server-side (LLM) itineraries, deploy the provided serverless function and set the LLM endpoint below in the config section of the script.
-  </footer>
-
 <script>
-/* =========================
-   Configuration (edit these)
-   =========================
-   - To enable real LLM itineraries, deploy the serverless function (example included below) and set LLM_ENDPOINT to its URL.
-   - For production, ensure the serverless function validates and stores your API key securely; never place secret keys in client HTML.
-*/
-const CONFIG = {
-  // Example: "https://your-deploy.netlify.app/.netlify/functions/itinerary" or "https://your-vercel.app/api/itinerary"
-  LLM_ENDPOINT: "",
-
-  // Optional: when you host an OG generator service, set OG_ENDPOINT
-  OG_ENDPOINT: "" // leave blank unless you implement server-side OG image generation
+/* ---------------------------
+   App state
+   --------------------------- */
+const demo = {
+  id: 1,
+  name: document.getElementById('demoTitle').textContent,
+  desc: document.getElementById('demoDesc').textContent,
+  lat: 62.0,
+  lng: -6.8
 };
 
-/* update UI for LLM status */
-document.addEventListener('DOMContentLoaded', ()=> {
-  document.getElementById('llmInfo').textContent = CONFIG.LLM_ENDPOINT ? CONFIG.LLM_ENDPOINT : 'Not configured';
-});
-
-/* =========================
-   Progressive manifest + service worker registration
-   We generate a manifest blob and register SW from within this single-file app.
-   ========================= */
-async function registerPWA(){
-  // create a manifest blob so we can keep this single-file
-  const manifest = {
-    name: "Hidden Gems Travel",
-    short_name: "HiddenGems",
-    start_url: ".",
-    display: "standalone",
-    background_color: "#f6f7fb",
-    theme_color: "#2a9d8f",
-    icons: [
-      { src: "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='192' height='192'><rect width='100%' height='100%' fill='#2a9d8f'/><text x='50%' y='50%' font-size='72' fill='#fff' font-family='Arial, sans-serif' text-anchor='middle' alignment-baseline='central'>HG</text></svg>`), sizes: "192x192", type: "image/svg+xml" }
-    ]
-  };
-  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-  const manifestURL = URL.createObjectURL(blob);
-  const link = document.createElement('link');
-  link.rel = 'manifest';
-  link.href = manifestURL;
-  document.head.appendChild(link);
-
-  // Register service worker (we create it dynamically so file remains single-file)
-  if('serviceWorker' in navigator){
-    try {
-      const swCode = `
-        const CACHE_NAME = 'hg-cache-v1';
-        const PRECACHE = [
-          './',
-          location.pathname, // allow file-based hosting
-          // common external resources we might want to cache first time
-        ];
-        self.addEventListener('install', event => {
-          self.skipWaiting();
-          event.waitUntil(
-            caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE).catch(()=>{}))
-          );
-        });
-        self.addEventListener('activate', event => {
-          event.waitUntil(self.clients.claim());
-        });
-        self.addEventListener('fetch', event => {
-          // network-first for API calls (so LLM works when available), cache-first for static
-          const url = new URL(event.request.url);
-          if (url.pathname.includes('/.netlify/functions') || url.pathname.includes('/api/')) {
-            event.respondWith(fetch(event.request).catch(()=>caches.match(event.request)));
-            return;
-          }
-          event.respondWith(
-            caches.match(event.request).then(resp => resp || fetch(event.request).then(r => {
-              // cache some GET responses
-              try {
-                if (event.request.method === 'GET' && r && r.type!=='opaque') {
-                  const clone = r.clone();
-                  caches.open(CACHE_NAME).then(c => c.put(event.request, clone)).catch(()=>{});
-                }
-              } catch(e){}
-              return r;
-            }).catch(()=>caches.match('./')))
-          );
-        });
-      `;
-      const swBlob = new Blob([swCode], { type: 'application/javascript' });
-      const swURL = URL.createObjectURL(swBlob);
-      await navigator.serviceWorker.register(swURL);
-      // console.log('Service worker registered');
-    } catch(e){
-      console.warn('SW registration failed', e);
-    }
-  }
-}
-registerPWA();
-
-/* =========================
-   Utility: load CSS/JS dynamically
-   ========================= */
-function loadCss(href){ return new Promise((res,rej)=>{ if(document.querySelector(`link[href="${href}"]`))return res(); const l=document.createElement('link'); l.rel='stylesheet'; l.href=href; l.onload=res; l.onerror=rej; document.head.appendChild(l); }); }
-function loadScript(src){ return new Promise((res,rej)=>{ if(document.querySelector(`script[data-src="${src}"]`))return res(); const s=document.createElement('script'); s.src=src; s.async=false; s.setAttribute('data-src', src); s.onload=res; s.onerror=rej; document.body.appendChild(s); }); }
-
-/* =========================
-   App state + DOM refs
-   ========================= */
-const demo = { id:1, name:document.getElementById('demoTitle').textContent, desc:document.getElementById('demoDesc').textContent, lat:62.0, lng:-6.8 };
-const modal = document.getElementById('plannerModal');
+const plannerModal = document.getElementById('plannerModal');
 const planBtn = document.getElementById('planBtn');
-const closePlanner = document.getElementById('closePlanner');
+const cancelPlanner = document.getElementById('cancelPlanner');
 const generateBtn = document.getElementById('generateBtn');
-const generateLLMBtn = document.getElementById('generateLLMBtn');
 const itineraryArea = document.getElementById('itineraryArea');
 const plDest = document.getElementById('plDest');
 const downloadPdfBtn = document.getElementById('downloadPdf');
 const savePlanBtn = document.getElementById('savePlan');
-const sharePlanBtn = document.getElementById('sharePlanBtn');
-const viewBucketBtn = document.getElementById('viewBucketBtn');
-let leafletLoaded=false, miniMap, routeLayer;
-let jsPDFLoaded=false;
-let lastActive=null;
+const sharePlanBtn = document.getElementById('sharePlan');
+const currencySelect = document.getElementById('currencySelect');
+const convertedCostEl = document.getElementById('convertedCost');
+const costEstimateEl = document.getElementById('costEstimate');
+const weatherBox = document.getElementById('weatherBox');
 
-/* =========================
-   Lazy load map and jsPDF when needed
-   ========================= */
-async function initLeafletOnce(){
+document.getElementById('plDest').textContent = demo.name.split(',')[0];
+
+let miniMap, routeLayer;
+let leafletLoaded = false;
+let jsPDFLoaded = false;
+
+/* ---------------------------
+   Utility: dynamic load
+   --------------------------- */
+function loadCss(href){ return new Promise((res, rej)=>{ if(document.querySelector(`link[href="${href}"]`)) return res(); const l = document.createElement('link'); l.rel='stylesheet'; l.href = href; l.onload = res; l.onerror = rej; document.head.appendChild(l); }); }
+function loadScript(src){ return new Promise((res, rej)=>{ if(document.querySelector(`script[data-src="${src}"]`)) return res(); const s = document.createElement('script'); s.src = src; s.async = false; s.setAttribute('data-src', src); s.onload = res; s.onerror = rej; document.body.appendChild(s); }); }
+
+/* ---------------------------
+   Map (Leaflet) - deferred
+   --------------------------- */
+async function initLeaflet(){
   if(leafletLoaded) return;
-  leafletLoaded=true;
+  leafletLoaded = true;
   try {
     await loadCss('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
     await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
-    miniMap = L.map('miniMap',{zoomControl:false,attributionControl:false}).setView([demo.lat,demo.lng],9);
+    miniMap = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView([demo.lat, demo.lng], 9);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(miniMap);
     routeLayer = L.layerGroup().addTo(miniMap);
-    document.getElementById('miniMap').setAttribute('aria-hidden','false');
-  } catch(e){ console.warn('Leaflet load failed', e); }
+    document.getElementById('miniMap').setAttribute('aria-hidden', 'false');
+  } catch(e){ console.warn('Leaflet failed', e); }
 }
-async function ensureJsPDF(){ if(jsPDFLoaded) return; try{ await loadScript('https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'); jsPDFLoaded = true; } catch(e){ console.warn('jsPDF failed', e); } }
 
-/* =========================
-   Modal open/close and focus
-   ========================= */
-function ensureStartDate(){ const s=document.getElementById('startDate'); if(!s.value){ const d=new Date(); d.setDate(d.getDate()+7); s.value=d.toISOString().slice(0,10);} }
-function openPlannerModal(){ plDest.textContent = demo.name.split(',')[0]; modal.classList.add('open'); ensureStartDate(); initLeafletOnce().then(()=> miniMap && setTimeout(()=>miniMap.invalidateSize(),120)); lastActive=document.activeElement; document.addEventListener('keydown', handleEscape, {capture:true}); }
-function closePlannerModal(){ modal.classList.remove('open'); itineraryArea.innerHTML=''; downloadPdfBtn.style.display='none'; savePlanBtn.style.display='none'; sharePlanBtn.style.display='none'; if(routeLayer && routeLayer.clearLayers) routeLayer.clearLayers(); document.removeEventListener('keydown', handleEscape, {capture:true}); lastActive && lastActive.focus && lastActive.focus(); }
-function handleEscape(e){ if(e.key==='Escape') closePlannerModal(); }
+/* ---------------------------
+   Open modal / focus
+   --------------------------- */
+let lastActive = null;
+planBtn.addEventListener('click', async () => {
+  lastActive = document.activeElement;
+  plDest.textContent = demo.name.split(',')[0];
+  plannerModal.classList.add('open');
+  ensureStartDate();
+  // defer-load map and weather when modal opens
+  initLeaflet().then(()=> miniMap && setTimeout(()=> miniMap.invalidateSize(), 120));
+  // fetch currency list & user currency
+  await initCurrency();
+  // fetch weather
+  fetchWeather(demo.lat, demo.lng);
+  document.addEventListener('keydown', handleEscape, {capture:true});
+});
+cancelPlanner.addEventListener('click', closePlanner);
+function closePlanner(){
+  plannerModal.classList.remove('open');
+  itineraryArea.innerHTML = '';
+  downloadPdfBtn.style.display = 'none';
+  savePlanBtn.style.display = 'none';
+  sharePlanBtn.style.display = 'none';
+  if(routeLayer && routeLayer.clearLayers) routeLayer.clearLayers();
+  document.removeEventListener('keydown', handleEscape, {capture:true});
+  lastActive && lastActive.focus && lastActive.focus();
+}
+function handleEscape(e){ if(e.key === 'Escape') closePlanner(); }
+document.getElementById('plannerModal').addEventListener('click', (e)=>{ if(e.target.id === 'plannerModal') closePlanner(); });
 
-planBtn.addEventListener('click', openPlannerModal);
-closePlanner.addEventListener('click', closePlannerModal);
+function ensureStartDate(){
+  const s = document.getElementById('startDate');
+  if(!s.value){ const d = new Date(); d.setDate(d.getDate()+7); s.value = d.toISOString().slice(0,10); }
+}
 
-/* =========================
-   Itinerary generation
-   - try LLM first if endpoint provided, then fallback to local generator
-   - serverless LLM contract: POST { dest, start, days, budget, traveler, notes } -> returns { plan:[{day,date,items:[{time,activity}]}], estimate:number }
-   ========================= */
-async function generateItineraryLocal({start, days, budget, traveler, notes}){
-  const keywords = (demo.desc + ' ' + (notes||'')).toLowerCase();
+/* ---------------------------
+   Itinerary generation (local fallback)
+   --------------------------- */
+function generateItinerary(){
+  const start = document.getElementById('startDate').value;
+  const days = parseInt(document.getElementById('duration').value, 10);
+  const budget = document.getElementById('budgetLevel').value;
+  const traveler = document.getElementById('travelerType').value;
+  const notes = document.getElementById('notes').value;
+  if(!start){ alert('Please choose a start date'); return; }
+
+  // simple keyword-based activities
+  const keywords = (demo.desc + ' ' + notes).toLowerCase();
   const activities = [];
-  if(keywords.includes('hike')||keywords.includes('cliff')) activities.push('Hike a scenic trail');
+  if(keywords.includes('hike') || keywords.includes('cliff')) activities.push('Hike a scenic trail');
   if(keywords.includes('whale')) activities.push('Whale watching tour');
   if(keywords.includes('fjord')) activities.push('Boat cruise of the fjords');
   if(keywords.includes('monastery')) activities.push('Cultural village visit');
   if(activities.length === 0) activities.push('Local highlights and photo spots');
+
   const plan = [];
   for(let d=0; d<days; d++){
-    const date = new Date(start); date.setDate(date.getDate()+d);
+    const date = new Date(start); date.setDate(date.getDate() + d);
     const day = { day: d+1, date: date.toISOString().slice(0,10), items: [] };
-    day.items.push({ time:'Morning', activity: activities[d % activities.length] });
-    day.items.push({ time:'Afternoon', activity: 'Explore local town' });
-    if(traveler === 'couple') day.items.push({ time:'Evening', activity:'Cozy dinner' });
-    else if(traveler === 'solo') day.items.push({ time:'Evening', activity:'Photography walk' });
-    else day.items.push({ time:'Evening', activity:'Family dinner' });
+    day.items.push({ time: 'Morning', activity: activities[d % activities.length] });
+    day.items.push({ time: 'Afternoon', activity: 'Explore local town' });
+    if(traveler === 'couple') day.items.push({ time: 'Evening', activity: 'Cozy dinner' });
+    else if(traveler === 'solo') day.items.push({ time: 'Evening', activity: 'Photography walk' });
+    else day.items.push({ time: 'Evening', activity: 'Family dinner' });
     plan.push(day);
   }
-  const base = (budget === 'low') ? 60 : (budget === 'mid') ? 120 : 260;
+
+  const base = (budget === 'low')?60:(budget === 'mid')?120:260;
   const estimate = base * days;
-  return { plan, estimate };
-}
 
-async function callLLMServer(payload){
-  if(!CONFIG.LLM_ENDPOINT) throw new Error('LLM endpoint not configured');
-  const res = await fetch(CONFIG.LLM_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json' },
-    body: JSON.stringify(payload)
-  });
-  if(!res.ok) throw new Error('LLM server error');
-  return res.json(); // expects { plan, estimate }
-}
+  renderPlan(plan, estimate);
+  downloadPdfBtn.style.display = 'inline-block';
+  savePlanBtn.style.display = 'inline-block';
+  sharePlanBtn.style.display = 'inline-block';
 
-async function handleGenerate({useLLM=false}){
-  const start = document.getElementById('startDate').value;
-  const days = parseInt(document.getElementById('duration').value,10);
-  const budget = document.getElementById('budgetLevel').value;
-  const traveler = document.getElementById('travelerType').value;
-  const notes = document.getElementById('notes').value;
-  if(!start){ alert('Please pick a start date'); return; }
-  itineraryArea.innerHTML = '<p class="small">Generating itinerary…</p>';
-  let result;
-  if(useLLM && CONFIG.LLM_ENDPOINT){
-    try {
-      result = await callLLMServer({ dest: demo, start, days, budget, traveler, notes });
-    } catch(e){
-      console.warn('LLM failed, falling back to local generator', e);
-      result = await generateItineraryLocal({ start, days, budget, traveler, notes });
-    }
-  } else {
-    result = await generateItineraryLocal({ start, days, budget, traveler, notes });
-  }
-
-  renderPlanAndMap(result, { dest: demo, start, days, budget, traveler, notes });
-}
-
-generateLLMBtn.addEventListener('click', ()=>handleGenerate({useLLM:true}));
-generateBtn.addEventListener('click', ()=>handleGenerate({useLLM:false}));
-
-function renderPlanAndMap(result, meta){
-  // draw map route (demo)
-  const routeCoords = [];
-  for(let i=0;i<6;i++){ const angle=(i/6)*Math.PI*2; const r=0.2; routeCoords.push([demo.lat+Math.sin(angle)*r, demo.lng+Math.cos(angle)*r]); }
-  if(routeLayer && L && L.polyline){
+  // draw demo route on map
+  if(routeLayer && window.L && L.polyline){
+    const routeCoords = [];
+    for(let i=0;i<6;i++){ const angle=(i/6)*Math.PI*2; const r=0.18; routeCoords.push([demo.lat+Math.sin(angle)*r, demo.lng+Math.cos(angle)*r]); }
     routeLayer.clearLayers();
-    L.polyline(routeCoords,{color:'#e76f51'}).addTo(routeLayer);
-    routeLayer.addLayer(L.circleMarker([demo.lat,demo.lng],{radius:6,fillColor:'#2a9d8f',color:'#fff',weight:2}).bindPopup(demo.name));
-    try { miniMap.fitBounds(L.latLngBounds(routeCoords).pad(0.5)); } catch(e){}
+    L.polyline(routeCoords, { color: '#e76f51' }).addTo(routeLayer);
+    routeLayer.addLayer(L.circleMarker([demo.lat, demo.lng], { radius:6, fillColor:'#2a9d8f', color:'#fff', weight:2 }).bindPopup(demo.name));
+    try{ miniMap.fitBounds(L.latLngBounds(routeCoords).pad(0.5)); } catch(e){}
   }
-  itineraryArea.innerHTML = `<h3 style="margin:.25rem 0">Estimated cost: <strong>USD ${result.estimate.toFixed(0)}</strong></h3>` +
-    result.plan.map(d=>`<div class="it-day" tabindex="0"><strong>Day ${d.day} — ${d.date}</strong><ul>${d.items.map(i=>`<li><em>${i.time}</em>: ${i.activity}</li>`).join('')}</ul></div>`).join('');
-  // store last generated plan in window
-  window._lastGeneratedPlan = { meta, plan: result.plan, estimate: result.estimate };
-  downloadPdfBtn.style.display='inline-block';
-  savePlanBtn.style.display='inline-block';
-  sharePlanBtn.style.display='inline-block';
-  // inject JSON-LD for this specific generated plan (useful for debugging / preview)
-  injectJSONLDForPlan(window._lastGeneratedPlan);
+
+  window._lastGeneratedPlan = { meta: { dest: demo, start, days, budget, traveler, notes, estimate }, plan };
+  updateCostDisplay(estimate);
 }
 
-/* =========================
-   Save / Share / Export
-   - Save to localStorage
-   - Shareable URL: ?plan=<base64url> which reconstructs everything on load
-   - Export HTML snapshot (for hosting somewhere that produces OG images)
-   ========================= */
-function savePlanToLocal(){
+generateBtn.addEventListener('click', generateItinerary);
+
+/* render plan HTML */
+function renderPlan(plan, estimate){
+  itineraryArea.innerHTML = `<h4>Estimated cost: USD ${estimate.toFixed(0)}</h4>` + plan.map(d => `<div class="it-day"><strong>Day ${d.day} — ${d.date}</strong><ul>${d.items.map(i => `<li><em>${i.time}</em>: ${i.activity}</li>`).join('')}</ul></div>`).join('');
+}
+
+/* ---------------------------
+   Currency conversion (exchangerate.host)
+   - caches rates in localStorage for 24 hours
+   - auto-detect user's currency via Intl (fallback to USD)
+   --------------------------- */
+const RATES_KEY = 'hg_rates_v1';
+async function fetchRates(){
+  const cachedRaw = localStorage.getItem(RATES_KEY);
+  if(cachedRaw){
+    try{
+      const parsed = JSON.parse(cachedRaw);
+      const age = Date.now() - parsed.t;
+      if(age < 24 * 3600 * 1000 && parsed.rates){ // cached under 24h
+        return parsed;
+      }
+    } catch(e){}
+  }
+  // fetch fresh
+  try{
+    const r = await fetch('https://api.exchangerate.host/latest?base=USD');
+    const j = await r.json();
+    if(j && j.rates){
+      const store = { t: Date.now(), rates: j.rates };
+      localStorage.setItem(RATES_KEY, JSON.stringify(store));
+      return store;
+    }
+  } catch(e){ console.warn('Failed to fetch rates', e); }
+  // fallback to cached if any
+  try{ return JSON.parse(cachedRaw); } catch(e){ return null; }
+}
+
+async function initCurrency(){
+  const ratesStore = await fetchRates();
+  const rates = ratesStore && ratesStore.rates ? ratesStore.rates : { USD:1 };
+  // build select list (show popular currencies first)
+  const popular = ['USD','EUR','GBP','AUD','CAD','JPY','INR','CNY'];
+  currencySelect.innerHTML = '';
+  // add popular first
+  const added = new Set();
+  popular.forEach(code => { if(rates[code]){ const opt = document.createElement('option'); opt.value = rates[code]; opt.textContent = code; currencySelect.appendChild(opt); added.add(code); }});
+  // then add remaining
+  Object.keys(rates).sort().forEach(code => { if(added.has(code)) return; const opt = document.createElement('option'); opt.value = rates[code]; opt.textContent = code; currencySelect.appendChild(opt); });
+  // detect user's currency via Intl
+  let userCurrency = 'USD';
+  try{
+    userCurrency = (Intl.DateTimeFormat().resolvedOptions().locale || 'en-US').split('-')[1] || userCurrency;
+    // Better fallback: use navigator.language to map to currency? For simplicity, stick to USD fallback
+  }catch(e){}
+  // If the detected 'country' maps to a currency code in rates, select it
+  if(rates[userCurrency]) {
+    currencySelect.value = rates[userCurrency];
+  } else {
+    // try to get currency from navigator.language country
+    const locale = navigator.language || navigator.userLanguage || 'en-US';
+    const country = locale.split('-')[1];
+    if(country){
+      // naive mapping for some common countries:
+      const mapping = { US:'USD', GB:'GBP', DE:'EUR', FR:'EUR', JP:'JPY', IN:'INR', CN:'CNY', AU:'AUD', CA:'CAD' };
+      const cc = mapping[country];
+      if(cc && rates[cc]) currencySelect.value = rates[cc];
+      else currencySelect.selectedIndex = 0;
+    } else currencySelect.selectedIndex = 0;
+  }
+  currencySelect.addEventListener('change', convertCurrency);
+  // if cost present, convert now
+  const estimateText = window._lastGeneratedPlan?.meta?.estimate || null;
+  if(estimateText) updateCostDisplay(estimateText);
+}
+
+/* update cost display and conversion */
+function updateCostDisplay(estimate){
+  costEstimateEl.innerHTML = `Estimated cost: <strong>USD ${estimate.toFixed(0)}</strong>`;
+  convertCurrency();
+}
+
+function convertCurrency(){
+  const estimate = window._lastGeneratedPlan?.meta?.estimate || (() => {
+    // read displayed USD value if present
+    const txt = costEstimateEl.textContent || '';
+    const found = txt.match(/\$?\s*([0-9,\.]+)/);
+    return found ? parseFloat(found[1].replace(/,/g,'')) : 0;
+  })();
+  const rate = parseFloat(currencySelect.value) || 1;
+  const code = currencySelect.selectedOptions[0]?.textContent || 'USD';
+  if(isFinite(estimate) && isFinite(rate)){
+    const converted = (estimate * rate).toFixed(2);
+    convertedCostEl.textContent = `≈ ${converted} ${code}`;
+  } else {
+    convertedCostEl.textContent = '';
+  }
+}
+
+/* ---------------------------
+   Weather (Open-Meteo)
+   - current weather + 3-day daily temps
+   --------------------------- */
+async function fetchWeather(lat, lon){
+  weatherBox.setAttribute('aria-hidden','false');
+  weatherBox.innerHTML = '<div class="small">Loading weather…</div>';
+  try{
+    // current weather and daily (3-day) forecast
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3`;
+    const r = await fetch(url);
+    const j = await r.json();
+    if(j && j.current_weather){
+      const cur = j.current_weather;
+      let html = `<div><strong>Now:</strong> ${cur.temperature}°C — <span class="muted">${cur.weathercode ?? ''}</span> (winds ${cur.windspeed} km/h)</div>`;
+      if(j.daily && j.daily.time){
+        html += `<div class="forecast">`;
+        for(let i=0;i<j.daily.time.length;i++){
+          const day = j.daily.time[i];
+          const tmax = j.daily.temperature_2m_max[i];
+          const tmin = j.daily.temperature_2m_min[i];
+          html += `<div class="day"><div style="font-weight:600">${day}</div><div>${tmin}° / ${tmax}°</div></div>`;
+        }
+        html += `</div>`;
+      }
+      weatherBox.innerHTML = html;
+    } else {
+      weatherBox.innerHTML = `<div class="small">Weather unavailable</div>`;
+    }
+  } catch(e){ console.warn('Weather fetch failed', e); weatherBox.innerHTML = `<div class="small">Weather unavailable</div>`; }
+}
+
+/* ---------------------------
+   Save plan / share / PDF
+   --------------------------- */
+savePlanBtn.addEventListener('click', ()=>{
   const data = window._lastGeneratedPlan;
   if(!data){ alert('No plan to save'); return; }
   const saved = JSON.parse(localStorage.getItem('hg_saved_plans') || '[]');
   saved.push({ id: Date.now(), created: new Date().toISOString(), data });
   localStorage.setItem('hg_saved_plans', JSON.stringify(saved));
-  alert('Plan saved locally.');
-}
-function makeShareURLForPlan(){
+  alert('Plan saved.');
+});
+
+sharePlanBtn.addEventListener('click', async ()=>{
   const p = window._lastGeneratedPlan;
-  if(!p){ alert('No plan to share'); return; }
-  // encode as base64url (compact)
+  if(!p){ alert('No plan generated'); return; }
   const str = JSON.stringify(p);
   const b64 = btoa(unescape(encodeURIComponent(str))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-  // Use query parameter so it works when the file is opened directly
   const url = `${location.origin}${location.pathname}?plan=${b64}`;
-  return url;
-}
-function copyToClipboard(text){
-  if(navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
-  return new Promise((res,rej)=>{ try{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); res(); }catch(e){ rej(e); } });
-}
-
-async function sharePlan(){
-  const url = makeShareURLForPlan();
   if(navigator.share){
-    try { await navigator.share({ title: 'My trip plan', text: `${window._lastGeneratedPlan.meta.dest.name} — ${window._lastGeneratedPlan.meta.start}`, url }); return; } catch(e){ /* user cancelled or not supported */ }
+    try{ await navigator.share({ title: `${p.meta.dest.name} trip`, text: `My trip plan`, url }); return; } catch(e){}
   }
-  await copyToClipboard(url);
-  alert('Share URL copied to clipboard:\n' + url + '\n\n(You can paste it into chat or email.)');
-}
-savePlanBtn.addEventListener('click', savePlanToLocal);
-sharePlanBtn.addEventListener('click', sharePlan);
+  try{ await navigator.clipboard.writeText(url); alert('Share link copied to clipboard'); } catch(e){ prompt('Copy link', url); }
+});
 
-/* When saving a plan, also create an embedded JSON-LD script for the plan and store it in localStorage for export if needed */
-function injectJSONLDForPlan(saved){
-  // Remove old if exists
-  const existing = document.getElementById('plan-jsonld');
-  if(existing) existing.remove();
-  const ld = {
-    "@context":"https://schema.org",
-    "@type":"TouristTrip",
-    "name": `${saved.meta.dest.name} — ${saved.meta.start} (${saved.meta.days} days)`,
-    "description": saved.meta.dest.desc || '',
-    "touristType": saved.meta.traveler,
-    "totalTime": `P${saved.meta.days}D`,
-    "estimatedCost": {
-      "@type":"MonetaryAmount",
-      "currency":"USD",
-      "value": saved.estimate || saved.meta.estimate
-    },
-    "itinerary": saved.plan.map(d=>({
-      "@type":"TouristAttraction",
-      "name": `Day ${d.day}`,
-      "description": d.items.map(i=>`${i.time}: ${i.activity}`).join(' — '),
-      "startDate": d.date
-    }))
-  };
-  const s = document.createElement('script');
-  s.type = 'application/ld+json';
-  s.id = 'plan-jsonld';
-  s.textContent = JSON.stringify(ld, null, 2);
-  document.head.appendChild(s);
-}
-
-/* Generate a downloadable HTML snapshot containing the plan (useful if you want to host a static file that yields an OG preview) */
-function generateHTMLSnapshotForPlan(){
-  const p = window._lastGeneratedPlan;
-  if(!p){ alert('No plan to snapshot'); return null; }
-  // simple HTML with JSON-LD and some metadata — host this in a server to produce OG images
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${p.meta.dest.name} — Itinerary</title>
-  <meta property="og:title" content="${p.meta.dest.name} — Itinerary">
-  <meta property="og:description" content="${p.meta.dest.desc}">
-  <meta property="og:image" content="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80">
-  <script type="application/ld+json">${document.getElementById('plan-jsonld').textContent}</script>
-  </head><body><h1>${p.meta.dest.name} — ${p.meta.start}</h1><pre>${JSON.stringify(p, null, 2)}</pre></body></html>`;
-  return html;
-}
-function exportBucketAsHTML(){
-  // build simple HTML of bucket items (download client-side)
-  const list = JSON.parse(localStorage.getItem('hg_favs') || '[]');
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>My Bucket List</title></head><body><h1>Bucket List</h1><ul>${list.map(i=>`<li>Item ${i}</li>`).join('')}</ul></body></html>`;
-  const blob = new Blob([html], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'bucket_list.html'; document.body.appendChild(a); a.click(); a.remove();
-}
-
-/* Provide a downloadable snapshot for share (user can host this) */
-function downloadSnapshot(){
-  const snap = generateHTMLSnapshotForPlan();
-  if(!snap) return;
-  const blob = new Blob([snap], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'itinerary_snapshot.html'; document.body.appendChild(a); a.click(); a.remove();
-}
-
-/* =========================
-   PDF export (deferred)
-   ========================= */
 downloadPdfBtn.addEventListener('click', async ()=>{
   const last = window._lastGeneratedPlan;
   if(!last){ alert('No plan'); return; }
-  await ensureJsPDF();
-  if(!jsPDFLoaded){ alert('Failed to load PDF library'); return; }
+  if(!jsPDFLoaded){
+    try{ await loadScript('https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'); jsPDFLoaded = true; }catch(e){ alert('Failed to load PDF library'); return; }
+  }
   const doc = new jspdf.jsPDF({ unit:'pt', format:'a4' });
   const title = `${last.meta.dest.name} — ${last.meta.start} (${last.meta.days} days)`;
   doc.setFontSize(14); doc.text(title, 40, 50);
-  doc.setFontSize(10); doc.text(`Estimated cost: USD ${last.estimate.toFixed(0)}`, 40, 70);
+  doc.setFontSize(10); doc.text(`Estimated cost: USD ${last.meta.estimate.toFixed(0)}`, 40, 70);
   let y = 100;
-  last.plan.forEach(day=>{
+  last.plan.forEach(day => {
     doc.setFontSize(11); doc.text(`Day ${day.day} — ${day.date}`, 40, y); y += 16;
-    day.items.forEach(it=>{
-      doc.setFontSize(10); doc.text(`${it.time}: ${it.activity}`, 60, y); y+=14;
-      if(y > 740){ doc.addPage(); y = 40; }
-    });
+    day.items.forEach(it => { doc.setFontSize(10); doc.text(`${it.time}: ${it.activity}`, 60, y); y += 14; if(y>740){ doc.addPage(); y = 40; } });
     y += 8;
   });
-  const filename = `${last.meta.dest.name.replace(/[^a-z0-9]/gi,'_')}_itinerary.pdf`;
-  doc.save(filename);
+  doc.save(`${last.meta.dest.name.replace(/[^a-z0-9]/gi,'_')}_itinerary.pdf`);
 });
 
-/* =========================
-   Bucket modal functions
-   ========================= */
+/* ---------------------------
+   Restore shared plan from ?plan=
+   --------------------------- */
+function decodePlanFromQuery(){
+  const params = new URLSearchParams(location.search);
+  const b64 = params.get('plan');
+  if(!b64) return null;
+  try{
+    const padded = b64.replace(/-/g,'+').replace(/_/g,'/');
+    const json = decodeURIComponent(escape(atob(padded)));
+    return JSON.parse(json);
+  } catch(e){ console.warn('Failed to decode plan', e); return null; }
+}
+async function restoreSharedIfAny(){
+  const shared = decodePlanFromQuery();
+  if(!shared) return;
+  // open modal and render
+  planBtn.click();
+  // give modal a moment to open
+  setTimeout(()=>{
+    window._lastGeneratedPlan = shared;
+    renderPlan(shared.plan, shared.meta.estimate || shared.estimate || (shared.meta?.estimate ?? 0));
+    updateCostDisplay(shared.meta?.estimate || shared.estimate || 0);
+    downloadPdfBtn.style.display = 'inline-block';
+    savePlanBtn.style.display = 'inline-block';
+    sharePlanBtn.style.display = 'inline-block';
+    injectJSONLD(shared);
+  }, 300);
+}
+restoreSharedIfAny();
+
+/* ---------------------------
+   JSON-LD injection for generated plan (helpful for debugging)
+   --------------------------- */
+function injectJSONLD(p){
+  const existing = document.getElementById('plan-jsonld'); if(existing) existing.remove();
+  const ld = {
+    "@context":"https://schema.org",
+    "@type":"TouristTrip",
+    "name": `${p.meta.dest.name} — ${p.meta.start}`,
+    "description": p.meta.dest.desc || '',
+    "touristType": p.meta.traveler,
+    "totalTime": `P${p.meta.days}D`,
+    "estimatedCost": { "@type":"MonetaryAmount", "currency":"USD", "value": p.meta.estimate }
+  };
+  const s = document.createElement('script'); s.type='application/ld+json'; s.id='plan-jsonld'; s.textContent = JSON.stringify(ld, null, 2); document.head.appendChild(s);
+}
+
+/* ---------------------------
+   Bucket list UI
+   --------------------------- */
 function openBucketModal(){
   const list = JSON.parse(localStorage.getItem('hg_favs') || '[]');
-  const grid = document.getElementById('bucketListGrid'); grid.innerHTML='';
-  if(list.length === 0) grid.innerHTML='<p>Your bucket list is empty.</p>'; else {
-    list.forEach(id=>{
-      const div = document.createElement('div'); div.className='bucket-item';
-      div.innerHTML = `<img src="https://picsum.photos/seed/${id}/200/120" loading="lazy" alt="bucket item ${id}"><button class="bucket-remove" onclick="removeFromBucket(${id})" aria-label="Remove">×</button>`;
-      grid.appendChild(div);
+  const grid = document.getElementById('bucketListGrid'); grid.innerHTML = '';
+  if(list.length === 0) grid.innerHTML = '<p class="small">Your bucket list is empty.</p>'; else {
+    list.forEach(id => {
+      const d = document.createElement('div'); d.style.position='relative';
+      d.style.borderRadius='10px'; d.style.overflow='hidden'; d.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)';
+      d.innerHTML = `<img src="https://picsum.photos/seed/${id}/200/120" loading="lazy" style="display:block;width:100%;height:90px;object-fit:cover"><button style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer" onclick="removeFromBucket(${id})">×</button>`;
+      grid.appendChild(d);
     });
   }
   document.getElementById('bucketModal').classList.add('open');
 }
 function closeBucketModal(){ document.getElementById('bucketModal').classList.remove('open'); }
 function removeFromBucket(id){ let list=JSON.parse(localStorage.getItem('hg_favs')||'[]'); list=list.filter(x=>x!==id); localStorage.setItem('hg_favs', JSON.stringify(list)); openBucketModal(); }
-
+document.getElementById('viewBucketBtn').addEventListener('click', openBucketModal);
 document.getElementById('saveDemoBtn').addEventListener('click', ()=>{
-  const favs = JSON.parse(localStorage.getItem('hg_favs') || '[]'); if(!favs.includes(demo.id)) favs.push(demo.id); localStorage.setItem('hg_favs', JSON.stringify(favs)); alert('Saved to favorites'); });
-viewBucketBtn.addEventListener('click', openBucketModal);
+  const favs=JSON.parse(localStorage.getItem('hg_favs')||'[]'); if(!favs.includes(demo.id)) favs.push(demo.id); localStorage.setItem('hg_favs', JSON.stringify(favs)); alert('Saved to favorites'); });
 
-/* expose helpers globally used by inline HTML */
-window.closeBucketModal = closeBucketModal;
-window.renderBucketList = ()=>{ alert('Share/export via Export as HTML or Save+Share Snapshot'); };
+/* expose removal for inline onclick */
 window.removeFromBucket = removeFromBucket;
+window.closeBucketModal = closeBucketModal;
 
-/* =========================
-   Handle share load: if ?plan=<base64> present, reconstruct
-   ========================= */
-function decodePlanFromQuery(){
-  const params = new URLSearchParams(location.search);
-  const b64 = params.get('plan');
-  if(!b64) return null;
-  try {
-    const padded = b64.replace(/-/g,'+').replace(/_/g,'/'); // base64url -> base64
-    const json = decodeURIComponent(escape(atob(padded)));
-    return JSON.parse(json);
-  } catch(e){ console.warn('Failed to decode plan', e); return null; }
-}
-async function restoreSharedPlanIfAny(){
-  const shared = decodePlanFromQuery();
-  if(!shared) return;
-  // open modal and render
-  openPlannerModal();
-  // inject into window._lastGeneratedPlan
-  window._lastGeneratedPlan = shared;
-  injectJSONLDForPlan(shared);
-  // render plan UI
-  itineraryArea.innerHTML = `<h3 style="margin:.25rem 0">Estimated cost: <strong>USD ${shared.estimate.toFixed(0)}</strong></h3>` +
-    shared.plan.map(d=>`<div class="it-day" tabindex="0"><strong>Day ${d.day} — ${d.date}</strong><ul>${d.items.map(i=>`<li><em>${i.time}</em>: ${i.activity}</li>`).join('')}</ul></div>`).join('');
-  downloadPdfBtn.style.display='inline-block'; savePlanBtn.style.display='inline-block'; sharePlanBtn.style.display='inline-block';
-  // map init
-  await initLeafletOnce();
-  if(routeLayer && L){
-    // draw a demo route
-    const routeCoords=[]; for(let i=0;i<6;i++){const angle=(i/6)*Math.PI*2;const r=0.2;routeCoords.push([demo.lat+Math.sin(angle)*r,demo.lng+Math.cos(angle)*r]);}
-    routeLayer.clearLayers(); L.polyline(routeCoords,{color:'#e76f51'}).addTo(routeLayer); routeLayer.addLayer(L.circleMarker([demo.lat,demo.lng],{radius:6,fillColor:'#2a9d8f',color:'#fff',weight:2}).bindPopup(demo.name)); try{ miniMap.fitBounds(L.latLngBounds(routeCoords).pad(0.5)); }catch(e){}
-  }
-}
-restoreSharedPlanIfAny();
-
-/* =========================
-   Small accessibility focus trapping (lightweight)
-   ========================= */
-document.addEventListener('focusin', (e) => {
-  const modalEl = document.getElementById('plannerModal');
-  if(!modalEl.classList.contains('open')) return;
-  const panel = modalEl.querySelector('.modal-panel');
-  if(!panel.contains(e.target)) { e.stopPropagation(); panel.focus(); }
+/* ---------------------------
+   Small accessibility helpers
+   --------------------------- */
+document.addEventListener('focusin', (e)=>{
+  if(!plannerModal.classList.contains('open')) return;
+  const panel = plannerModal.querySelector('.modal-panel');
+  if(!panel.contains(e.target)) panel.focus();
 });
 
-/* Close modals when clicking outside */
-document.getElementById('bucketModal').addEventListener('click', (e)=>{ if(e.target.id==='bucketModal') closeBucketModal(); });
-document.getElementById('plannerModal').addEventListener('click', (e)=>{ if(e.target.id==='plannerModal') closePlannerModal(); });
-
-/* =========================
-   OPTIONAL: Serverless function example for Vercel / Netlify
-   - Deploy this serverless function and set CONFIG.LLM_ENDPOINT to its URL.
-   - Important: keep your real LLM / OpenAI API key on the server only.
-   =========================
-   Example (Node) for Vercel / Netlify (save as api/itinerary.js or functions/itinerary.js):
-
-   // ------------------ example serverless (Node) ------------------
-   // Vercel / Netlify style single function
-   const fetch = require('node-fetch'); // Node 18 has fetch built-in; include if needed
-
-   module.exports = async (req, res) => {
-     try {
-       const body = req.body || JSON.parse(req);
-       const { dest, start, days, budget, traveler, notes } = body;
-       // validate input
-       if(!start || !days) return res.status(400).json({ error: 'invalid' });
-
-       // Build prompt for LLM (example for OpenAI)
-       const prompt = `Create a ${days}-day itinerary for ${dest.name} starting ${start}. Budget: ${budget}. Traveler: ${traveler}. Interests: ${notes}. Provide JSON: { plan:[{day,date,items:[{time,activity}]}], estimate:number }`;
-
-       // call OpenAI (server must keep API key secret)
-       const r = await fetch('https://api.openai.com/v1/chat/completions', {
-         method:'POST',
-         headers:{
-           'Content-Type':'application/json',
-           'Authorization':'Bearer ' + process.env.OPENAI_API_KEY
-         },
-         body: JSON.stringify({
-           model: 'gpt-4o-mini', // or gpt-4o or whichever
-           messages: [{ role:'user', content: prompt }],
-           temperature:0.7,
-           max_tokens:800
-         })
-       });
-       const j = await r.json();
-       // parse assistant reply to JSON safely (the server can use a JSON parser or regex)
-       // For safety, you should direct the LLM to return strict JSON, then parse it.
-       // Here we assume the response has JSON in j.choices[0].message.content
-       const content = j.choices?.[0]?.message?.content || '{}';
-       // Attempt to find JSON substring
-       const match = content.match(/\{[\\s\\S]*\}$/);
-       const parsed = match ? JSON.parse(match[0]) : { plan:[], estimate:0 };
-       res.json(parsed);
-     } catch(err){
-       console.error(err);
-       res.status(500).json({ error: 'server error' });
-     }
-   };
-   // ------------------ end serverless example ------------------
-
-   Notes:
-   - Deploy this on Vercel/Netlify and set your OPENAI_API_KEY in environment variables.
-   - Validate and sanitize inputs.
-   - Rate-limit and require authentication in production.
-*/
-
-/* =========================
-   Last: on page load, pre-warm jsPDF in background (non-blocking)
-   ========================= */
-window.addEventListener('load', ()=>{ setTimeout(()=>ensureJsPDF(), 3000); });
-
+/* preload PDF library after a few seconds (non-blocking) */
+setTimeout(()=>{ loadScript('https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js').then(()=>jsPDFLoaded=true).catch(()=>{}); }, 4000);
 </script>
 </body>
 </html>
